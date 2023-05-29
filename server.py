@@ -10,10 +10,6 @@ from config import DEBUG
 app = Flask(__name__)
 
 
-def validate(data):
-    pass
-
-
 @app.route("/api", methods=["POST"])
 def api():
     t = request.get_json()
