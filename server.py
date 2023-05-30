@@ -6,7 +6,10 @@ from auto_encoder import BP_AE
 from mlp import MLP
 from result_fusion import FuzzyLayer, FusedFuzzyDeepNet
 from config import DEBUG
+import warnings
 
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
 app = Flask(__name__)
 
 
