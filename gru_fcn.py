@@ -2,7 +2,6 @@ import os
 import numpy as np
 import torch
 import torch.nn as nn
-from segmentation import calc_segmentation_points
 from config import TARGET_SAMPLE_RATE, SUPPORTED_SAMPLE_TYPES
 from utils import parse_sample
 
@@ -151,8 +150,6 @@ def model_input_parse(sample, segmentations=None, batch_simulation=True):
     """
     将样本转换为模型输入的格式
     """
-    if segmentations is None:
-        segmentations = calc_segmentation_points(sample)
     sample_array, _ = parse_sample(
         sample,
         segmentations,
