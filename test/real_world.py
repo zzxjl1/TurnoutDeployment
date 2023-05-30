@@ -94,7 +94,7 @@ def send(sample):
     t["time_interval"] = 40
     print(t)
     r = requests.post(url, json=t)
-    with open("response.txt", "w") as f:
+    with open("./debug_output/response.txt", "w") as f:
         f.write(r.text)
 
 
