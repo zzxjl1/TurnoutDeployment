@@ -6,8 +6,15 @@ import pandas as pd
 from enum import Enum
 
 
-column_names = ["timestamp", "direction", "data",
-                "point_count", "current_type", "curve_type", "turnout_name"]  # 列名
+column_names = [
+    "timestamp",
+    "direction",
+    "data",
+    "point_count",
+    "current_type",
+    "curve_type",
+    "turnout_name",
+]  # 列名
 df = pd.read_excel("./test/turnoutActionCurve.xlsx")  # 读取excel文件
 
 
@@ -36,7 +43,7 @@ seq = ["A", "B", "C", "power"]  # 曲线顺序
 
 def validate(i):
     for j in range(4):  # 遍历四个曲线
-        t = read_row(i+j)  # 获取第i+j行的数据
+        t = read_row(i + j)  # 获取第i+j行的数据
         if t["curve_type"] != CurveType[seq[j]].value:  # 顺序不匹配
             return False
 
@@ -49,7 +56,7 @@ def validate(i):
 def parse(i):
     result = {}
     for j in range(4):  # 遍历四个曲线
-        t = read_row(i+j)  # 获取第i+j行的数据
+        t = read_row(i + j)  # 获取第i+j行的数据
         type = CurveType(t["curve_type"]).name  # 曲线类型
         result[type] = t["data"].split(",")  # 解析数据
         result[type] = list(map(float, result[type]))  # 全部元素除以100
@@ -64,7 +71,6 @@ def get_all_samples():
     row = df.shape[0]  # 总行数
     i = 0
     while i < row:  # 遍历每一行
-
         if not validate(i):  # 过滤非法数据
             i += 1
             print(f"line {i} validate failed")
@@ -80,13 +86,16 @@ def get_all_samples():
 
 def send(sample):
     import requests
+
     url = "http://localhost:5000/api"
     t = {}
+    sample.pop("power")
     t["data"] = sample
     t["time_interval"] = 40
-    t["point_count"] = len(sample["A"])
+    print(t)
     r = requests.post(url, json=t)
-    print(r.text)
+    with open("response.txt", "w") as f:
+        f.write(r.text)
 
 
 if __name__ == "__main__":
