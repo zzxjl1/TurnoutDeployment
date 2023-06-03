@@ -141,6 +141,7 @@ def calc_segmentation_points_single_series(series, gru_score, name=""):
         ax.set_xlabel("Time(s)")
         plt.tight_layout()
         plt.savefig(f"./debug_output/{name}_segmentation.png")
+        plt.close()
 
     return segmentation_point_1_x, segmentation_point_2_x
 

@@ -121,6 +121,7 @@ def draw(y_before, y_after, filename, title=""):
     figure.legend(lines, labels, loc="upper right")
     figure.set_tight_layout(True)
     plt.savefig(filename)
+    plt.close()
 
 
 def predict(sample):

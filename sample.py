@@ -53,6 +53,7 @@ class Sample:
         lines, labels = ax1.get_legend_handles_labels()
         plt.legend(lines, labels, loc="best")
         plt.savefig("./debug_output/input_sample.png")
+        plt.close()
 
     def validate(self):
         self.point_count = len(list(self.raw_data.values())[0])
