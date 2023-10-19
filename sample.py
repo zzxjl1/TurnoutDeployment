@@ -74,7 +74,7 @@ class Sample:
 
         return interpolate(x, y)  # 插值
 
-    @pysnooper.snoop()
+    # @pysnooper.snoop()
     def calc_seg_points(self):
         def to_time(t):
             return round(t, 2) if t is not None else None

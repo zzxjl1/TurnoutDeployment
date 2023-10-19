@@ -5,7 +5,7 @@ from torch import nn
 from config import SUPPORTED_SAMPLE_TYPES
 
 FILE_PATH = "./models/result_fusion.pth"
-FORCE_CPU = True  # 强制使用CPU
+FORCE_CPU = False  # 强制使用CPU
 DEVICE = torch.device("cuda" if torch.cuda.is_available() and not FORCE_CPU else "cpu")
 print("Using device:", DEVICE)
 N_CLASSES = len(SUPPORTED_SAMPLE_TYPES)

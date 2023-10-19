@@ -38,6 +38,6 @@ if __name__ == "__main__":
         "server:app",
         host="0.0.0.0",
         port=5000,
-        debug=DEBUG,
+        reload=DEBUG,
         workers=1,
     )
