@@ -2,10 +2,9 @@ import os
 import random
 import torch
 from torch import nn
-from config import SUPPORTED_SAMPLE_TYPES
+from config import SUPPORTED_SAMPLE_TYPES, FORCE_CPU
 
 FILE_PATH = "./models/result_fusion.pth"
-FORCE_CPU = False  # 强制使用CPU
 DEVICE = torch.device("cuda" if torch.cuda.is_available() and not FORCE_CPU else "cpu")
 print("Using device:", DEVICE)
 N_CLASSES = len(SUPPORTED_SAMPLE_TYPES)

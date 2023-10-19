@@ -2,11 +2,10 @@ import os
 import numpy as np
 import torch
 import torch.nn as nn
-from config import TARGET_SAMPLE_RATE, SUPPORTED_SAMPLE_TYPES
+from config import TARGET_SAMPLE_RATE, SUPPORTED_SAMPLE_TYPES, FORCE_CPU
 from utils import parse_sample
 
 FILE_PATH = "./models/gru_classification.pth"
-FORCE_CPU = False  # 强制使用CPU
 DEVICE = torch.device("cuda" if torch.cuda.is_available() and not FORCE_CPU else "cpu")
 N_CLASSES = len(SUPPORTED_SAMPLE_TYPES)  # 分类数
 SERIES_TO_ENCODE = ["A", "B", "C"]

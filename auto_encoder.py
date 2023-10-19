@@ -12,7 +12,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from utils import parse_sample
-from config import FILE_OUTPUT, TARGET_SAMPLE_RATE, SUPPORTED_SAMPLE_TYPES
+from config import FILE_OUTPUT, FORCE_CPU, TARGET_SAMPLE_RATE, SUPPORTED_SAMPLE_TYPES
 
 POOLING_FACTOR_PER_TIME_SERIES = 5  # 每条时间序列的降采样因子
 TIME_SERIES_DURATION = 10  # 输入模型的时间序列时长为10s
@@ -23,7 +23,6 @@ TOTAL_LENGTH = TIME_SERIES_LENGTH // POOLING_FACTOR_PER_TIME_SERIES
 TOTAL_LENGTH *= CHANNELS  # 输入总长度
 
 FILE_PATH = "./models/auto_encoder/"  # 模型保存路径
-FORCE_CPU = False  # 强制使用CPU
 DEVICE = torch.device("cuda" if torch.cuda.is_available() and not FORCE_CPU else "cpu")
 print("Using device:", DEVICE)
 
@@ -107,8 +106,8 @@ def model_input_parse(sample):
 
 
 def draw(y_before, y_after, filename, title=""):
-    y_before = y_before.view(CHANNELS, -1)
-    y_after = y_after.view(CHANNELS, -1)
+    y_before = y_before.view(CHANNELS, -1).cpu().numpy()
+    y_after = y_after.view(CHANNELS, -1).cpu().numpy()
     figure, (axes) = plt.subplots(CHANNELS, 1, figsize=(12, 5))
     for i in range(CHANNELS):
         ax = axes[i]

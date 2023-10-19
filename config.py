@@ -1,6 +1,7 @@
 TARGET_SAMPLE_RATE = 25  # 模型输入采样率，必须与之匹配
 FILE_OUTPUT = True
 DEBUG = False
+FORCE_CPU = False  # 强制使用CPU跑模型
 SUPPORTED_SAMPLE_TYPES = [
     "normal",
     "H1",

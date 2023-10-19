@@ -10,10 +10,9 @@ import torch.nn.functional as F
 from extract_features import IGNORE_LIST, calc_features, SERIES_TO_ENCODE
 from seg_score import GRUScore
 from utils import get_label_from_result_pretty, parse_predict_result
-from config import SUPPORTED_SAMPLE_TYPES, FILE_OUTPUT
+from config import SUPPORTED_SAMPLE_TYPES, FILE_OUTPUT, FORCE_CPU
 
 FILE_PATH = "./models/mlp_classification.pth"
-FORCE_CPU = False  # 强制使用CPU
 DEVICE = torch.device("cuda" if torch.cuda.is_available() and not FORCE_CPU else "cpu")
 print("Using device:", DEVICE)
 

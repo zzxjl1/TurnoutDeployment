@@ -7,7 +7,7 @@ import os
 import numpy as np
 import torch
 import torch.nn as nn
-from config import TARGET_SAMPLE_RATE
+from config import TARGET_SAMPLE_RATE, FORCE_CPU
 from utils import find_nearest, parse_sample
 
 FILE_PATH = "./models/gru_score.pth"
@@ -18,7 +18,6 @@ POOLING_FACTOR_PER_TIME_SERIES = 3  # 每个时间序列的池化因子,用于�
 SEQ_LENGTH = TIME_SERIES_LENGTH // POOLING_FACTOR_PER_TIME_SERIES  # 降采样后的序列长度
 
 
-FORCE_CPU = False  # 强制使用CPU
 DEVICE = torch.device("cuda" if torch.cuda.is_available() and not FORCE_CPU else "cpu")
 CHANNELS = len(SERIES_TO_ENCODE)  # 通道数
 TRAIN_ONLY_WITH_NORMAL = False  # 只用正常数据训练（！使用故障样本训练会无法收敛！）
