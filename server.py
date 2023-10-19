@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
+import multiprocessing
 from typing import Dict, Any, Union
 
 from sample import Sample
@@ -36,10 +37,14 @@ def api(rawData: RawData):
 
 if __name__ == "__main__":
     mk_output_dir()
+    # 获取 CPU 核心数量
+    number_of_cores = multiprocessing.cpu_count()
+    # 设置 worker 数量
+    workers_num = 2 * number_of_cores + 1
     uvicorn.run(
         "server:app",
         host="0.0.0.0",
         port=5000,
         reload=DEBUG,
-        workers=1,
+        workers=workers_num,
     )

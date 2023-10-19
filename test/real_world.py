@@ -85,7 +85,20 @@ def get_all_samples():
     return result
 
 
-def send(sample):
+def send(sample, concurrency=1):
+    def do():
+        nonlocal count
+        start_time = time.time()  # Record the start time
+        r = requests.post(url, json=t)
+        end_time = time.time()  # Record the end time
+        elapsed_time = end_time - start_time  # Calculate the elapsed time
+        print(f"Elapsed Time: {elapsed_time:.2f} seconds")
+        count += 1
+        print(f"count: {count},total:{concurrency}")
+
+        # with open("./debug_output/response.txt", "w") as f:
+        #    f.write(r.text)
+
     url = "http://localhost:5000/detect"
     t = {}
     sample.pop("power")
@@ -93,25 +106,28 @@ def send(sample):
     t["point_interval"] = 40
     print(t)
 
-    start_time = time.time()  # Record the start time
-    r = requests.post(url, json=t)
-    end_time = time.time()  # Record the end time
-    elapsed_time = end_time - start_time  # Calculate the elapsed time
-    print(f"Elapsed Time: {elapsed_time:.2f} seconds")
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        threads = []
+        count = 0
+        for _ in range(concurrency):
+            future = executor.submit(do)
+            threads.append(future)
 
-    with open("./debug_output/response.txt", "w") as f:
-        f.write(r.text)
+        for thread in threads:
+            thread.result()
+        print("all done")
 
 
 if __name__ == "__main__":
     import os
     import sys
     import requests
+    import concurrent.futures
 
     parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     sys.path.insert(0, parentdir)
 
     for sample in get_all_samples():
         print(sample)
-        send(sample)
+        send(sample, 5)
         input()

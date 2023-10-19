@@ -102,7 +102,7 @@ class Sample:
         }
         return self.seg_points
 
-    @pysnooper.snoop(thread_info=True)
+    # @pysnooper.snoop(thread_info=True)
     def predict(self):
         seg_pts = [pt["time"] for pt in self.seg_points.values()]
 
