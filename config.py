@@ -1,4 +1,4 @@
-TARGET_SAMPLE_RATE = 60
+TARGET_SAMPLE_RATE = 25  # 模型输入采样率，更改会影响效果
 DEBUG = True
 SUPPORTED_SAMPLE_TYPES = [
     "normal",

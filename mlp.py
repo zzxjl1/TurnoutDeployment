@@ -13,7 +13,7 @@ from utils import get_label_from_result_pretty, parse_predict_result
 from config import SUPPORTED_SAMPLE_TYPES, DEBUG
 
 FILE_PATH = "./models/mlp_classification.pth"
-FORCE_CPU = True  # 强制使用CPU
+FORCE_CPU = False  # 强制使用CPU
 DEVICE = torch.device("cuda" if torch.cuda.is_available() and not FORCE_CPU else "cpu")
 print("Using device:", DEVICE)
 
@@ -21,37 +21,19 @@ INPUT_VECTOR_SIZE = 1 + 15 * len(SERIES_TO_ENCODE) * 3 - len(IGNORE_LIST)  # 输
 N_CLASSES = len(SUPPORTED_SAMPLE_TYPES)  # 分类数
 
 
-class MLP(nn.Module):
-    def __init__(self, input_vector_size, output_vector_size):
-        super(MLP, self).__init__()
-        self.bn1 = nn.BatchNorm1d(input_vector_size)
-        self.fc1 = nn.Linear(input_vector_size, 64)
-        self.bn2 = nn.BatchNorm1d(64)
-        self.fc2 = nn.Linear(64, 128)
-        self.bn3 = nn.BatchNorm1d(128)
-        self.out = nn.Linear(128, output_vector_size)
+MLP = nn.Sequential(
+    nn.BatchNorm1d(INPUT_VECTOR_SIZE),  # 归一化
+    nn.Linear(INPUT_VECTOR_SIZE, 64),  # 全连接层
+    nn.BatchNorm1d(64),
+    nn.ReLU(),  # 激活函数
+    nn.Linear(64, 128),
+    nn.BatchNorm1d(128),
+    nn.ReLU(),
+    nn.Linear(128, N_CLASSES),
+    nn.Softmax(dim=1),  # 分类任务最后用softmax层
+)
 
-        self.softmax = nn.Softmax(dim=1)
-
-    def forward(self, x):
-        bn1_result = self.bn1(x)
-
-        fc1_result = self.fc1(bn1_result)
-        bn2_result = self.bn2(fc1_result)
-        x = F.relu(bn2_result)
-
-        fc2_result = self.fc2(x)
-        bn3_result = self.bn3(fc2_result)
-        x = F.relu(bn3_result)
-
-        out = self.out(x)
-        softmax_result = self.softmax(out)
-        return softmax_result
-
-
-model = MLP(input_vector_size=INPUT_VECTOR_SIZE, output_vector_size=N_CLASSES).to(
-    DEVICE
-)  # 使用BP模型
+model = MLP.to(DEVICE)  # 使用BP模型
 print(model)
 
 

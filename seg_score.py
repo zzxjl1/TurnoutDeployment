@@ -11,14 +11,14 @@ from config import TARGET_SAMPLE_RATE
 from utils import find_nearest, parse_sample
 
 FILE_PATH = "./models/gru_score.pth"
-TIME_SERIES_DURATION = 20  # 20s
+TIME_SERIES_DURATION = 15  # 15s
 TIME_SERIES_LENGTH = TARGET_SAMPLE_RATE * TIME_SERIES_DURATION  # 采样率*时间，总共的数据点数
 SERIES_TO_ENCODE = ["A", "B", "C"]  # 生成三相电流序列，不生成power曲线
-POOLING_FACTOR_PER_TIME_SERIES = 5  # 每个时间序列的池化因子,用于降低工作量
+POOLING_FACTOR_PER_TIME_SERIES = 3  # 每个时间序列的池化因子,用于降低工作量
 SEQ_LENGTH = TIME_SERIES_LENGTH // POOLING_FACTOR_PER_TIME_SERIES  # 降采样后的序列长度
 
 
-FORCE_CPU = True  # 强制使用CPU
+FORCE_CPU = False  # 强制使用CPU
 DEVICE = torch.device("cuda" if torch.cuda.is_available() and not FORCE_CPU else "cpu")
 CHANNELS = len(SERIES_TO_ENCODE)  # 通道数
 TRAIN_ONLY_WITH_NORMAL = False  # 只用正常数据训练（！使用故障样本训练会无法收敛！）

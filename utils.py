@@ -2,6 +2,7 @@ import numpy as np
 from config import TARGET_SAMPLE_RATE
 from config import SUPPORTED_SAMPLE_TYPES
 import scipy.interpolate
+from scipy import signal
 
 
 def find_nearest(array, value):
@@ -38,11 +39,14 @@ def generate_power_series(current_series, power_factor=0.8):
 
 def interpolate(x, y):
     """根据关键点插值到固定采样率"""
-    interper = scipy.interpolate.interp1d(x, y, kind="linear")  # 线性插值
     time_elipsed = max(x) - min(x)  # 总时间
-    x = np.linspace(min(x), max(x), round(time_elipsed * TARGET_SAMPLE_RATE))  # 插值
-    y = interper(x)
+    target_length = round(time_elipsed * TARGET_SAMPLE_RATE)
+    if len(x) == target_length:
+        return x, y
 
+    interper = scipy.interpolate.interp1d(x, y, kind="linear")  # 线性插值
+    x = np.linspace(min(x), max(x), target_length)  # 插值
+    y = interper(x)
     return x, y
 
 
@@ -54,7 +58,8 @@ def parse_time_series(time_series, time_series_length, pooling_factor_per_time_s
         result = np.pad(
             time_series, (0, time_series_length - len(time_series)), "constant"
         )
-    result = result[::pooling_factor_per_time_series]
+    # result = result[::pooling_factor_per_time_series]
+    result = signal.decimate(result, pooling_factor_per_time_series)
     return result
 
 

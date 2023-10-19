@@ -5,6 +5,9 @@ import auto_encoder
 import result_fusion
 import numpy as np
 from utils import interpolate
+import matplotlib
+
+matplotlib.use("Agg")  # Use the Agg backend
 import matplotlib.pyplot as plt
 from config import DEBUG, TARGET_SAMPLE_RATE
 from utils import parse_predict_result

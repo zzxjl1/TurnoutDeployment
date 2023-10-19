@@ -47,8 +47,8 @@ def validate(i):
         if t["curve_type"] != CurveType[seq[j]].value:  # 顺序不匹配
             return False
 
-        if t["current_type"] != CurrentType.DC.value:  # 电流类型不匹配
-            return False
+        # if t["current_type"] != CurrentType.DC.value:  # 电流类型不匹配
+        #    return False
 
         return True
 

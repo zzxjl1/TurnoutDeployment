@@ -29,21 +29,37 @@ def calc_features_per_stage(x, y, series_name, stage_name):
         ) ** 0.5  # Standard deviation
         result["rms"] = (sum([i**2 for i in y]) / len(y)) ** 0.5  # 均方根
         result["peak_to_peak"] = max(y) - min(y)  # 峰峰值
-        result["skewness"] = sum(
-            [((i - result["mean"]) / result["std"]) ** 3 for i in y]
-        ) / len(y)
-        result["kurtosis"] = sum(
-            [((i - result["mean"]) / result["std"]) ** 4 for i in y]
-        ) / len(
-            y
-        )  # 峭度
+        try:
+            result["skewness"] = sum(
+                [((i - result["mean"]) / result["std"]) ** 3 for i in y]
+            ) / len(y)
+            result["kurtosis"] = sum(
+                [((i - result["mean"]) / result["std"]) ** 4 for i in y]
+            ) / len(
+                y
+            )  # 峭度
+        except ZeroDivisionError:
+            result["skewness"] = 0
+            result["kurtosis"] = 0
 
-        result["impluse_factor"] = max(y) / result["mean_abs"]
-        result["form_factor"] = result["rms"] / result["mean_abs"]
-        result["crest_factor"] = max(y) / result["rms"]
-        result["clearance_factor"] = (
-            max(y) / (sum([abs(i) ** 0.5 for i in y]) / len(y)) ** 2
-        )
+        try:
+            result["impluse_factor"] = max(y) / result["mean_abs"]
+            result["form_factor"] = result["rms"] / result["mean_abs"]
+        except ZeroDivisionError:
+            result["impluse_factor"] = 0
+            result["form_factor"] = 0
+
+        try:
+            result["crest_factor"] = max(y) / result["rms"]
+        except ZeroDivisionError:
+            result["crest_factor"] = 0
+
+        try:
+            result["clearance_factor"] = (
+                max(y) / (sum([abs(i) ** 0.5 for i in y]) / len(y)) ** 2
+            )
+        except ZeroDivisionError:
+            result["clearance_factor"] = 0
 
     else:
         result["time_span"] = -1
@@ -174,12 +190,15 @@ def calc_features(sample, segmentations=None):
     if not segmentations:
         segmentations = calc_segmentation_points(sample)
     features = OrderedDict()
-    for name, series in sample.items():  # 遍历4个曲线
+    for name, series in sample.items():  # 遍历3个曲线
+        if name not in SERIES_TO_ENCODE:
+            continue
         x, y = series
         total_time_elipsed = x[-1] - x[0]  # 总用时
         t = calc_features_single_series(x, y, segmentations, name)
         features.update(t)  # 合并
     features["total_time_elipsed"] = total_time_elipsed
+
     assert len(features) == 1 + 15 * len(SERIES_TO_ENCODE) * 3  # 断言确保特征数
 
     for i in IGNORE_LIST:

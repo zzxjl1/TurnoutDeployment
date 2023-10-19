@@ -3,7 +3,9 @@
 采用正常时间序列无监督训练，用于产生是否异常的置信度
 该置信度会用于之后的分类，以降低假阳率
 """
-from sklearn import preprocessing
+import matplotlib
+
+matplotlib.use("Agg")  # Use the Agg backend
 import matplotlib.pyplot as plt
 import os
 import numpy as np
@@ -12,7 +14,7 @@ import torch.nn as nn
 from utils import parse_sample
 from config import DEBUG, TARGET_SAMPLE_RATE, SUPPORTED_SAMPLE_TYPES
 
-POOLING_FACTOR_PER_TIME_SERIES = 5  # 每条时间序列的采样点数
+POOLING_FACTOR_PER_TIME_SERIES = 5  # 每条时间序列的降采样因子
 TIME_SERIES_DURATION = 10  # 输入模型的时间序列时长为10s
 TIME_SERIES_LENGTH = TARGET_SAMPLE_RATE * TIME_SERIES_DURATION  # 时间序列长度
 SERIES_TO_ENCODE = ["A", "B", "C"]  # 参与训练和预测的序列，power暂时不用
@@ -21,7 +23,7 @@ TOTAL_LENGTH = TIME_SERIES_LENGTH // POOLING_FACTOR_PER_TIME_SERIES
 TOTAL_LENGTH *= CHANNELS  # 输入总长度
 
 FILE_PATH = "./models/auto_encoder/"  # 模型保存路径
-FORCE_CPU = True  # 强制使用CPU
+FORCE_CPU = False  # 强制使用CPU
 DEVICE = torch.device("cuda" if torch.cuda.is_available() and not FORCE_CPU else "cpu")
 print("Using device:", DEVICE)
 
@@ -134,7 +136,3 @@ def predict(sample):
 
 def softmax(x):
     return np.exp(x) / np.sum(np.exp(x), axis=0)
-
-
-def sigmoid_d(x):
-    return np.exp(-x) / (1 + np.exp(-x)) ** 2

@@ -6,14 +6,14 @@ from config import TARGET_SAMPLE_RATE, SUPPORTED_SAMPLE_TYPES
 from utils import parse_sample
 
 FILE_PATH = "./models/gru_classification.pth"
-FORCE_CPU = True  # 强制使用CPU
+FORCE_CPU = False  # 强制使用CPU
 DEVICE = torch.device("cuda" if torch.cuda.is_available() and not FORCE_CPU else "cpu")
 N_CLASSES = len(SUPPORTED_SAMPLE_TYPES)  # 分类数
 SERIES_TO_ENCODE = ["A", "B", "C"]
 CHANNELS = len(SERIES_TO_ENCODE)
-TIME_SERIES_DURATION = 20  # 20s
+TIME_SERIES_DURATION = 15  # 15s
 TIME_SERIES_LENGTH = TARGET_SAMPLE_RATE * TIME_SERIES_DURATION  # 采样率*时间，总共的数据点数
-POOLING_FACTOR_PER_TIME_SERIES = 5  # 每个时间序列的池化因子,用于降低工作量
+POOLING_FACTOR_PER_TIME_SERIES = 3  # 每个时间序列的池化因子,用于降低工作量
 SEQ_LENGTH = TIME_SERIES_LENGTH // POOLING_FACTOR_PER_TIME_SERIES  # 降采样后的序列长度
 
 

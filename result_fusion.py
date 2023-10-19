@@ -1,11 +1,3 @@
-"""
-将bp、transformer、ae 三个分类器的结果进行融合
-采用Fuzzy神经网络，具有可解释性
-
-相关链接：
-人工智能新进展，可解释性深度学习？深度卷积模糊系统理论及应用 - https://www.bilibili.com/read/cv11188724
-神经网络可解释性、深度学习新方法 - https://www.bilibili.com/read/cv4311278
-"""
 import os
 import random
 import torch
@@ -60,10 +52,8 @@ class FusedFuzzyDeepNet(nn.Module):
         fuzzy_layer_input_dim=1,
         fuzzy_layer_output_dim=1,
         dropout_rate=0.2,
-        device=DEVICE,
     ):
         super(FusedFuzzyDeepNet, self).__init__()
-        self.device = device
         self.input_vector_size = input_vector_size
         self.fuzz_vector_size = fuzz_vector_size
         self.num_class = num_class
@@ -96,7 +86,7 @@ class FusedFuzzyDeepNet(nn.Module):
     def forward(self, input):
         input = self.bn(input)
         fuzz_input = self.fuzz_init_linear_layer(input)
-        fuzz_output = torch.zeros(input.size(), dtype=torch.float, device=self.device)
+        fuzz_output = torch.zeros(input.size(), dtype=torch.float).to(DEVICE)
         for col_idx in range(fuzz_input.size()[1]):
             col_vector = fuzz_input[:, col_idx : col_idx + 1]
             fuzz_col_vector = (

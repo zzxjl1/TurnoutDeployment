@@ -5,6 +5,9 @@ from sklearn.neighbors import LocalOutlierFactor as LOF
 from seg_score import get_score_by_time, time_to_index, GRUScore, model_input_parse
 from seg_score import predict as gru_predict_score
 from matplotlib import patches
+import matplotlib
+
+matplotlib.use("Agg")  # Use the Agg backend
 import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter, find_peaks
 import numpy as np
@@ -22,8 +25,8 @@ def get_d(s, smooth=True):
         window_length：窗口长度，该值需为正奇整数
         k值：polyorder为对窗口内的数据点进行k阶多项式拟合，k的值需要小于window_length
         """
-        y = savgol_filter(y, window_length=7, polyorder=3)
-        y = savgol_filter(y, window_length=5, polyorder=1)
+        y = savgol_filter(y, window_length=5, polyorder=2)
+        # y = savgol_filter(y, window_length=5, polyorder=1)
 
     assert len(x) > 2  # 算法要求至少需要2个点
     result = []
@@ -92,7 +95,7 @@ def calc_segmentation_points_single_series(series, gru_score, name=""):
     duration = x[-1]  # 曲线的总时长
 
     d1_result = get_d(series, smooth=True)  # 计算一阶导数
-    d2_result = get_d(d1_result, smooth=True)  # 计算二阶导数
+    d2_result = get_d(d1_result, smooth=False)  # 计算二阶导数
     segmentation_point_1_index, segmentation_point_1_x = find_segmentation_point_1(
         *d2_result
     )  # 寻找第一个分段点
@@ -170,6 +173,8 @@ def calc_segmentation_points(sample):
 
     def remove_outlier(pt):
         if not pt:
+            return pt
+        if len(pt) == 1:
             return pt
         pt = np.array(pt).reshape(-1, 1)
         result = LOF(n_neighbors=1).fit_predict(pt)
