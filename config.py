@@ -1,6 +1,6 @@
 TARGET_SAMPLE_RATE = 25  # 模型输入采样率，必须与之匹配
 FILE_OUTPUT = True
-DEBUG = True
+DEBUG = False
 SUPPORTED_SAMPLE_TYPES = [
     "normal",
     "H1",

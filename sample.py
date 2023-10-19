@@ -11,6 +11,8 @@ matplotlib.use("Agg")  # Use the Agg backend
 import matplotlib.pyplot as plt
 from config import FILE_OUTPUT, TARGET_SAMPLE_RATE
 from utils import parse_predict_result
+import concurrent.futures
+import pysnooper
 
 
 class Sample:
@@ -27,6 +29,7 @@ class Sample:
         for channel_name in channel_names:
             channel_data = self.raw_data[channel_name]
             self.data[channel_name] = self.parse_channel(channel_data)
+
         if FILE_OUTPUT:
             self.plot_sample()
 
@@ -41,7 +44,7 @@ class Sample:
         return timeseries
 
     def plot_sample(self):
-        fig = plt.figure(dpi=150, figsize=(9, 2))
+        fig = plt.figure(figsize=(9, 2))
         ax1 = fig.subplots()
         for phase in ["A", "B", "C"]:
             ax1.plot(*self.data[phase], label=f"Phase {phase}")
@@ -53,8 +56,8 @@ class Sample:
         plt.grid(True)
         lines, labels = ax1.get_legend_handles_labels()
         plt.legend(lines, labels, loc="best")
-        plt.savefig("./debug_output/input_sample.png")
-        plt.close()
+        plt.savefig("./debug_output/input_sample.png", dpi=150)
+        plt.close(fig)
 
     def validate(self):
         self.point_count = len(list(self.raw_data.values())[0])
@@ -71,6 +74,7 @@ class Sample:
 
         return interpolate(x, y)  # 插值
 
+    @pysnooper.snoop()
     def calc_seg_points(self):
         def to_time(t):
             return round(t, 2) if t is not None else None
@@ -98,12 +102,26 @@ class Sample:
         }
         return self.seg_points
 
+    @pysnooper.snoop(thread_info=True)
     def predict(self):
         seg_pts = [pt["time"] for pt in self.seg_points.values()]
 
+        """
         mlp_result = mlp.predict(self.data, seg_pts)
         gru_fcn_result = gru_fcn.predict(self.data)
         ae_result = auto_encoder.predict(self.data)
+        """
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            # 提交任务到线程池或进程池进行并行执行
+            mlp_future = executor.submit(mlp.predict, self.data, seg_pts)
+            gru_fcn_future = executor.submit(gru_fcn.predict, self.data)
+            ae_future = executor.submit(auto_encoder.predict, self.data)
+
+            # gather结果
+            mlp_result = mlp_future.result()
+            gru_fcn_result = gru_fcn_future.result()
+            ae_result = ae_future.result()
 
         final_result = result_fusion.predict(mlp_result, gru_fcn_result, ae_result)
 

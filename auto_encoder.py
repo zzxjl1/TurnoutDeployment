@@ -109,7 +109,7 @@ def model_input_parse(sample):
 def draw(y_before, y_after, filename, title=""):
     y_before = y_before.view(CHANNELS, -1)
     y_after = y_after.view(CHANNELS, -1)
-    figure, (axes) = plt.subplots(CHANNELS, 1, figsize=(12, 5), dpi=150)
+    figure, (axes) = plt.subplots(CHANNELS, 1, figsize=(12, 5))
     for i in range(CHANNELS):
         ax = axes[i]
         ax.plot(y_before[i], label="original")
@@ -122,8 +122,8 @@ def draw(y_before, y_after, filename, title=""):
     lines, labels = figure.axes[-1].get_legend_handles_labels()
     figure.legend(lines, labels, loc="upper right")
     figure.set_tight_layout(True)
-    plt.savefig(filename)
-    plt.close()
+    plt.savefig(filename, dpi=150)
+    plt.close(figure)
 
 
 def predict(sample):
