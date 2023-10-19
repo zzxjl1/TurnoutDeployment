@@ -1,10 +1,11 @@
 """
 读取excel表格中的现实世界数据并打包为sample
 """
+import time
 import numpy as np
 import pandas as pd
 from enum import Enum
-
+import requests
 
 column_names = [
     "timestamp",
@@ -85,15 +86,19 @@ def get_all_samples():
 
 
 def send(sample):
-    import requests
-
     url = "http://localhost:5000/detect"
     t = {}
     sample.pop("power")
     t["time_series"] = sample
     t["point_interval"] = 40
     print(t)
+
+    start_time = time.time()  # Record the start time
     r = requests.post(url, json=t)
+    end_time = time.time()  # Record the end time
+    elapsed_time = end_time - start_time  # Calculate the elapsed time
+    print(f"Elapsed Time: {elapsed_time:.2f} seconds")
+
     with open("./debug_output/response.txt", "w") as f:
         f.write(r.text)
 
