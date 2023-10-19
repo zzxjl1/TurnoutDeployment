@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from config import TARGET_SAMPLE_RATE
 from config import SUPPORTED_SAMPLE_TYPES
@@ -100,3 +101,11 @@ def parse_predict_result(result):
 def get_label_from_result_pretty(result_pretty):
     """从解析后的预测结果中获取标签"""
     return max(result_pretty, key=result_pretty.get)
+
+
+def mk_output_dir():
+    """创建输出目录"""
+    dirs = ["./debug_output", "./debug_output/AE", "./debug_output/segmentation"]
+    for dir in dirs:
+        if not os.path.exists(dir):
+            os.mkdir(dir)

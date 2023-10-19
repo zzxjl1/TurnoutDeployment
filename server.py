@@ -10,6 +10,7 @@ from auto_encoder import BP_AE
 from mlp import MLP
 from result_fusion import FuzzyLayer, FusedFuzzyDeepNet
 from config import DEBUG
+from utils import mk_output_dir
 
 
 app = FastAPI()
@@ -34,6 +35,7 @@ def api(rawData: RawData):
 
 
 if __name__ == "__main__":
+    mk_output_dir()
     uvicorn.run(
         "server:app",
         host="0.0.0.0",
