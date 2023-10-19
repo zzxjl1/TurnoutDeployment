@@ -12,7 +12,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from utils import parse_sample
-from config import DEBUG, TARGET_SAMPLE_RATE, SUPPORTED_SAMPLE_TYPES
+from config import FILE_OUTPUT, TARGET_SAMPLE_RATE, SUPPORTED_SAMPLE_TYPES
 
 POOLING_FACTOR_PER_TIME_SERIES = 5  # 每条时间序列的降采样因子
 TIME_SERIES_DURATION = 10  # 输入模型的时间序列时长为10s
@@ -129,7 +129,7 @@ def draw(y_before, y_after, filename, title=""):
 def predict(sample):
     x = model_input_parse(sample)
     results, losses, confidences = predict_raw_input(x)
-    if DEBUG:
+    if FILE_OUTPUT:
         visualize_prediction_result(x, results, losses)
     return torch.tensor(list(confidences.values()), dtype=torch.float).to(DEVICE)
 

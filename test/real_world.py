@@ -87,11 +87,11 @@ def get_all_samples():
 def send(sample):
     import requests
 
-    url = "http://localhost:5000/api"
+    url = "http://localhost:5000/detect"
     t = {}
     sample.pop("power")
-    t["data"] = sample
-    t["time_interval"] = 40
+    t["time_series"] = sample
+    t["point_interval"] = 40
     print(t)
     r = requests.post(url, json=t)
     with open("./debug_output/response.txt", "w") as f:

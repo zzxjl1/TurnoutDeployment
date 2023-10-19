@@ -11,7 +11,7 @@ matplotlib.use("Agg")  # Use the Agg backend
 import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter, find_peaks
 import numpy as np
-from config import DEBUG
+from config import FILE_OUTPUT
 
 SEGMENT_POINT_1_THRESHOLD = 30
 
@@ -103,7 +103,7 @@ def calc_segmentation_points_single_series(series, gru_score, name=""):
         *d2_result, series, segmentation_point_1_index, gru_score
     )  # 寻找第二个分段点
 
-    if DEBUG:  # debug usage
+    if FILE_OUTPUT:  # debug usage
         fig = plt.figure(dpi=150, figsize=(9, 4))
         ax = fig.subplots()
         ax.set_xlim(0, duration)

@@ -1,4 +1,5 @@
-TARGET_SAMPLE_RATE = 25  # 模型输入采样率，更改会影响效果
+TARGET_SAMPLE_RATE = 25  # 模型输入采样率，必须与之匹配
+FILE_OUTPUT = True
 DEBUG = True
 SUPPORTED_SAMPLE_TYPES = [
     "normal",
@@ -13,4 +14,4 @@ SUPPORTED_SAMPLE_TYPES = [
     "F3",
     "F4",
     "F5",
-]  # 论文中所有可能的曲线类型
+]  # 支持的故障类型

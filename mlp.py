@@ -10,7 +10,7 @@ import torch.nn.functional as F
 from extract_features import IGNORE_LIST, calc_features, SERIES_TO_ENCODE
 from seg_score import GRUScore
 from utils import get_label_from_result_pretty, parse_predict_result
-from config import SUPPORTED_SAMPLE_TYPES, DEBUG
+from config import SUPPORTED_SAMPLE_TYPES, FILE_OUTPUT
 
 FILE_PATH = "./models/mlp_classification.pth"
 FORCE_CPU = False  # 强制使用CPU
@@ -55,7 +55,7 @@ def write_to_file(features):
 
 def predict(sample, segmentations=None):
     features = calc_features(sample, segmentations)  # 计算特征
-    if DEBUG:
+    if FILE_OUTPUT:
         write_to_file(features)
     features = list(features.values())
     features = torch.tensor([features], dtype=torch.float)  # 转换为tensor

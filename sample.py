@@ -9,7 +9,7 @@ import matplotlib
 
 matplotlib.use("Agg")  # Use the Agg backend
 import matplotlib.pyplot as plt
-from config import DEBUG, TARGET_SAMPLE_RATE
+from config import FILE_OUTPUT, TARGET_SAMPLE_RATE
 from utils import parse_predict_result
 
 
@@ -41,7 +41,7 @@ class Sample:
         return timeseries
 
     def plot_sample(self):
-        if not DEBUG:
+        if not FILE_OUTPUT:
             return
         fig = plt.figure(dpi=150, figsize=(9, 2))
         ax1 = fig.subplots()
