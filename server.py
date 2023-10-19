@@ -22,7 +22,6 @@ class RawData(BaseModel):
 
 @app.post("/detect")
 def api(rawData: RawData):
-    print(rawData)
     sample = Sample(rawData.time_series, rawData.point_interval)
     seg_points = sample.calc_seg_points()  # 计算分割点
     prediction = sample.predict()

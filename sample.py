@@ -27,8 +27,8 @@ class Sample:
         for channel_name in channel_names:
             channel_data = self.raw_data[channel_name]
             self.data[channel_name] = self.parse_channel(channel_data)
-
-        self.plot_sample()
+        if FILE_OUTPUT:
+            self.plot_sample()
 
     @property
     def time_series(self):
@@ -41,8 +41,6 @@ class Sample:
         return timeseries
 
     def plot_sample(self):
-        if not FILE_OUTPUT:
-            return
         fig = plt.figure(dpi=150, figsize=(9, 2))
         ax1 = fig.subplots()
         for phase in ["A", "B", "C"]:
