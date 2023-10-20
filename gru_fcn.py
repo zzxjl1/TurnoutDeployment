@@ -177,7 +177,7 @@ def predict_raw_input(x):
     return output
 
 
-def predict(sample):
+def predict(uuid, sample):
     x = model_input_parse(sample, batch_simulation=True)  # 转换为模型输入格式
     output = predict_raw_input(x).squeeze()
     return output

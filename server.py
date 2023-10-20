@@ -10,9 +10,9 @@ from gru_fcn import GRU_FCN, Vanilla_GRU, FCN_1D, Squeeze_Excite
 from auto_encoder import BP_AE
 from mlp import MLP
 from result_fusion import FuzzyLayer, FusedFuzzyDeepNet
-from config import DEBUG
+from config import DEBUG, FILE_OUTPUT
 from utils import mk_output_dir
-
+from visualization import plot_ae, plot_sample, plot_seg_pts
 
 app = FastAPI()
 
@@ -23,15 +23,22 @@ class RawData(BaseModel):
 
 
 @app.post("/detect")
-def api(rawData: RawData):
+def predict(rawData: RawData):
     sample = Sample(rawData.time_series, rawData.point_interval)
     seg_points = sample.calc_seg_points()  # 计算分割点
     prediction = sample.predict()
 
+    if FILE_OUTPUT:
+        plot_sample(sample.uuid)
+        plot_seg_pts(sample.uuid)
+        plot_ae(sample.uuid)
+
     return {
+        "uuid": sample.uuid,
         "time_series": sample.time_series,  # 插值后的数据
         "seg_points": seg_points,
         "fault_diagnosis": prediction,
+        "file_output": FILE_OUTPUT,
     }
 
 
@@ -40,7 +47,7 @@ if __name__ == "__main__":
     # 获取 CPU 核心数量
     number_of_cores = multiprocessing.cpu_count()
     # 设置 worker 数量
-    workers_num = 2 * number_of_cores + 1
+    workers_num = 1 * number_of_cores + 1 if not DEBUG else 1
     uvicorn.run(
         "server:app",
         host="0.0.0.0",

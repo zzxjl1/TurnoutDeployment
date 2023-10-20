@@ -4,11 +4,7 @@
 from sklearn.neighbors import LocalOutlierFactor as LOF
 from seg_score import get_score_by_time, time_to_index, GRUScore, model_input_parse
 from seg_score import predict as gru_predict_score
-from matplotlib import patches
-import matplotlib
-
-matplotlib.use("Agg")  # Use the Agg backend
-import matplotlib.pyplot as plt
+from utils import save_args
 from scipy.signal import savgol_filter, find_peaks
 import numpy as np
 from config import FILE_OUTPUT
@@ -89,7 +85,7 @@ def find_segmentation_point_2(
     return index, result
 
 
-def calc_segmentation_points_single_series(series, gru_score, name=""):
+def calc_segmentation_points_single_series(uuid, series, gru_score, name=""):
     """计算单条曲线的分段点"""
     x, y = series
     duration = x[-1]  # 曲线的总时长
@@ -104,52 +100,22 @@ def calc_segmentation_points_single_series(series, gru_score, name=""):
     )  # 寻找第二个分段点
 
     if FILE_OUTPUT:  # debug usage
-        fig = plt.figure(figsize=(9, 4))
-        ax = fig.subplots()
-        ax.set_xlim(0, duration)
-        ax.set_yticks([])  # 不显示y轴
-        ax_new = ax.twinx().twiny()
-        ax_new.set_yticks([])  # 不显示y轴
-        ax_new.set_xticks([])  # 不显示x轴
-        ax_new.pcolormesh(
-            gru_score[: time_to_index(duration)].reshape(1, -1), cmap="Reds", alpha=0.7
-        )
-        # ax_new.plot(*model_output_to_xy(gru_score, end_sec=duration), "r")
-        ax1 = ax.twinx()  # 生成第二个y轴
-        ax2 = ax.twinx()  # 生成第三个y轴
-        # ax2.plot(*d1_result, label="d1")
-        ax2.plot(*d2_result, label="Legacy Scheme", color="red", linewidth=1, alpha=0.2)
-        ax1.plot(x, y, label="Time Series", color="blue")
-        ax1.set_yticks([])  # 不显示y轴
-        ax2.set_yticks([])  # 不显示y轴
-        # 画竖线
-        if segmentation_point_1_x is not None:
-            plt.axvline(
-                x=segmentation_point_1_x,
-                color="r",
-                linestyle="--",
-                label="Segmentation Point",
-            )
-        if segmentation_point_2_x is not None:
-            plt.axvline(x=segmentation_point_2_x, color="r", linestyle="--")
-        plt.title(f"Channel {name} Segmentation Result")
-        lines, labels = ax1.get_legend_handles_labels()
-        lines2, labels2 = ax2.get_legend_handles_labels()
-        heatmap_patch = patches.Rectangle((0, 0), 1, 1, fc="r", alpha=0.7)
-        plt.legend(
-            lines + [heatmap_patch] + lines2,
-            labels + ["GRU Score Heatmap"] + labels2,
-            loc="upper right",
-        )  # 显示图例
-        ax.set_xlabel("Time(s)")
-        plt.tight_layout()
-        plt.savefig(f"./debug_output/{name}_segmentation.png", dpi=150)
-        plt.close(fig)
+        kwargs = {
+            "gru_score": gru_score,
+            "duration": duration,
+            "segmentation_point_1_x": segmentation_point_1_x,
+            "segmentation_point_2_x": segmentation_point_2_x,
+            "d2_result": d1_result,
+            "x": x,
+            "y": y,
+            "name": name,
+        }
+        save_args(f"./file_output/{uuid}/segmentations/raw/{name}.pkl", kwargs)
 
     return segmentation_point_1_x, segmentation_point_2_x
 
 
-def calc_segmentation_points(sample):
+def calc_segmentation_points(uuid, sample):
     """计算整个样本（4条线）的分段点"""
     model_input = model_input_parse(sample)
     # print("model_input: ", model_input.shape)
@@ -162,7 +128,7 @@ def calc_segmentation_points(sample):
         if name == "power":  # power曲线不作分段依据，因为感觉会起反作用
             continue
         result[name] = calc_segmentation_points_single_series(
-            series, gru_score=gru_score, name=name
+            uuid, series, gru_score=gru_score, name=name
         )  # 计算分段点
     # print(result)
     # 做了一个融合，不同曲线算出的分段点可能不同，因此需要取最佳的分段点

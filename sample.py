@@ -4,19 +4,23 @@ import mlp
 import auto_encoder
 import result_fusion
 import numpy as np
-from utils import interpolate
+from utils import interpolate, mk_output_dir, save_args
 import matplotlib
+
 
 matplotlib.use("Agg")  # Use the Agg backend
 import matplotlib.pyplot as plt
 from config import FILE_OUTPUT, TARGET_SAMPLE_RATE
 from utils import parse_predict_result
 import concurrent.futures
-import pysnooper
+import uuid
+
+# import pysnooper
 
 
 class Sample:
     def __init__(self, data, point_interval) -> None:
+        self.uuid = uuid.uuid4()
         self.raw_data = data
         self.data = {}
         self.point_count = 0
@@ -31,7 +35,8 @@ class Sample:
             self.data[channel_name] = self.parse_channel(channel_data)
 
         if FILE_OUTPUT:
-            self.plot_sample()
+            mk_output_dir(self.uuid)
+            save_args(f"./file_output/{self.uuid}/input_sample.pkl", self.data)
 
     @property
     def time_series(self):
@@ -42,22 +47,6 @@ class Sample:
                 "y": [round(t, 4) for t in data[1]],
             }
         return timeseries
-
-    def plot_sample(self):
-        fig = plt.figure(figsize=(9, 2))
-        ax1 = fig.subplots()
-        for phase in ["A", "B", "C"]:
-            ax1.plot(*self.data[phase], label=f"Phase {phase}")
-        plt.title(f"Sample after Interpolation")
-        ax1.set_xlabel("Time(s)")
-        ax1.set_ylabel("Current(A)")
-        ax1.set_ylim(bottom=0, top=5)
-        plt.xlim(0, None)  # 设置x轴范围
-        plt.grid(True)
-        lines, labels = ax1.get_legend_handles_labels()
-        plt.legend(lines, labels, loc="best")
-        plt.savefig("./debug_output/input_sample.png", dpi=150)
-        plt.close(fig)
 
     def validate(self):
         self.point_count = len(list(self.raw_data.values())[0])
@@ -87,7 +76,7 @@ class Sample:
 
         assert self.data is not None
 
-        t1, t2 = calc_segmentation_points(self.data)
+        t1, t2 = calc_segmentation_points(self.uuid, self.data)
         self.seg_points = {
             "pt_1": {
                 "time": to_time(t1),
@@ -107,16 +96,16 @@ class Sample:
         seg_pts = [pt["time"] for pt in self.seg_points.values()]
 
         """
-        mlp_result = mlp.predict(self.data, seg_pts)
-        gru_fcn_result = gru_fcn.predict(self.data)
-        ae_result = auto_encoder.predict(self.data)
+        mlp_result = mlp.predict(self.uuid,self.data, seg_pts)
+        gru_fcn_result = gru_fcn.predict(self.uuid,self.data)
+        ae_result = auto_encoder.predict(self.uuid,self.data)
         """
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             # 提交任务到线程池或进程池进行并行执行
-            mlp_future = executor.submit(mlp.predict, self.data, seg_pts)
-            gru_fcn_future = executor.submit(gru_fcn.predict, self.data)
-            ae_future = executor.submit(auto_encoder.predict, self.data)
+            mlp_future = executor.submit(mlp.predict, self.uuid, self.data, seg_pts)
+            gru_fcn_future = executor.submit(gru_fcn.predict, self.uuid, self.data)
+            ae_future = executor.submit(auto_encoder.predict, self.uuid, self.data)
 
             # gather结果
             mlp_result = mlp_future.result()

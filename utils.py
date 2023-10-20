@@ -103,9 +103,28 @@ def get_label_from_result_pretty(result_pretty):
     return max(result_pretty, key=result_pretty.get)
 
 
-def mk_output_dir():
+def mk_output_dir(uuid=None):
     """创建输出目录"""
-    dirs = ["./debug_output", "./debug_output/AE", "./debug_output/segmentation"]
+    if uuid is None:
+        dirs = ["./file_output"]
+    else:
+        dirs = [
+            f"./file_output/{uuid}",
+            f"./file_output/{uuid}/AE",
+            f"./file_output/{uuid}/AE/raw",
+            f"./file_output/{uuid}/segmentations",
+            f"./file_output/{uuid}/segmentations/raw",
+        ]
+
     for dir in dirs:
         if not os.path.exists(dir):
             os.mkdir(dir)
+
+
+import pickle
+
+
+def save_args(filepath, args):
+    """保存参数"""
+    with open(filepath, "wb") as f:
+        pickle.dump(args, f)

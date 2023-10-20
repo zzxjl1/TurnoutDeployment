@@ -3,15 +3,11 @@
 采用正常时间序列无监督训练，用于产生是否异常的置信度
 该置信度会用于之后的分类，以降低假阳率
 """
-import matplotlib
-
-matplotlib.use("Agg")  # Use the Agg backend
-import matplotlib.pyplot as plt
 import os
 import numpy as np
 import torch
 import torch.nn as nn
-from utils import parse_sample
+from utils import parse_sample, save_args
 from config import FILE_OUTPUT, FORCE_CPU, TARGET_SAMPLE_RATE, SUPPORTED_SAMPLE_TYPES
 
 POOLING_FACTOR_PER_TIME_SERIES = 5  # 每条时间序列的降采样因子
@@ -78,16 +74,23 @@ def predict_raw_input(x):
     return results, losses, confidences
 
 
-def visualize_prediction_result(y_before, results, losses):
+def visualize_prediction_result(uuid, y_before, results, losses):
+    y_before = y_before.view(CHANNELS, -1).cpu().numpy()
     for i, ae_type in enumerate(SUPPORTED_SAMPLE_TYPES):
         loss = losses[i]
         y_after = results[ae_type]
-        draw(
-            y_before,
-            y_after,
-            filename=f"./debug_output/AE/{ae_type}",
-            title=f"AutoEncoder type: {ae_type} - loss: {loss}",
-        )
+        y_after = y_after.view(CHANNELS, -1).cpu().numpy()
+
+        kwargs = {
+            "channels": CHANNELS,
+            "series_to_encode": SERIES_TO_ENCODE,
+            "ae_type": ae_type,
+            "loss": loss,
+            "y_before": y_before,
+            "y_after": y_after,
+        }
+
+        save_args(f"./file_output/{uuid}/AE/raw/{ae_type}.pkl", kwargs)
 
 
 def model_input_parse(sample):
@@ -105,31 +108,11 @@ def model_input_parse(sample):
     return torch.tensor(result, dtype=torch.float).to(DEVICE)
 
 
-def draw(y_before, y_after, filename, title=""):
-    y_before = y_before.view(CHANNELS, -1).cpu().numpy()
-    y_after = y_after.view(CHANNELS, -1).cpu().numpy()
-    figure, (axes) = plt.subplots(CHANNELS, 1, figsize=(12, 5))
-    for i in range(CHANNELS):
-        ax = axes[i]
-        ax.plot(y_before[i], label="original")
-        ax.plot(y_after[i], label="AutoEncoder result")
-        ax.set_title(f"Channel: {SERIES_TO_ENCODE[i]}")
-        ax.set_xlim(0, None)
-        ax.set_ylim(bottom=0, top=5)
-
-    figure.suptitle(title)
-    lines, labels = figure.axes[-1].get_legend_handles_labels()
-    figure.legend(lines, labels, loc="upper right")
-    figure.set_tight_layout(True)
-    plt.savefig(filename, dpi=150)
-    plt.close(figure)
-
-
-def predict(sample):
+def predict(uuid, sample):
     x = model_input_parse(sample)
     results, losses, confidences = predict_raw_input(x)
     if FILE_OUTPUT:
-        visualize_prediction_result(x, results, losses)
+        visualize_prediction_result(uuid, x, results, losses)
     return torch.tensor(list(confidences.values()), dtype=torch.float).to(DEVICE)
 
 

@@ -96,7 +96,7 @@ def send(sample, concurrency=1):
         count += 1
         print(f"count: {count},total:{concurrency}")
 
-        # with open("./debug_output/response.txt", "w") as f:
+        # with open("./file_output/response.txt", "w") as f:
         #    f.write(r.text)
 
     url = "http://localhost:5000/detect"

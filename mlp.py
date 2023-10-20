@@ -46,16 +46,16 @@ def predict_raw_input(x):
         return output
 
 
-def write_to_file(features):
-    with open("./debug_output/extracted_features.txt", "w") as f:
+def write_to_file(uuid, features):
+    with open(f"./file_output/{uuid}/extracted_features.txt", "w") as f:
         for l, v in features.items():
             f.write(f"{l}: {v}\n")
 
 
-def predict(sample, segmentations=None):
+def predict(uuid, sample, segmentations=None):
     features = calc_features(sample, segmentations)  # 计算特征
     if FILE_OUTPUT:
-        write_to_file(features)
+        write_to_file(uuid, features)
     features = list(features.values())
     features = torch.tensor([features], dtype=torch.float)  # 转换为tensor
     result = predict_raw_input(features.to(DEVICE)).squeeze()
