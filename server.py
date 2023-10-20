@@ -28,10 +28,10 @@ def predict(rawData: RawData):
     seg_points = sample.calc_seg_points()  # 计算分割点
     prediction = sample.predict()
 
-    if FILE_OUTPUT:
-        plot_sample(sample.uuid)
-        plot_seg_pts(sample.uuid)
-        plot_ae(sample.uuid)
+    # if FILE_OUTPUT:
+    #    plot_sample(sample.uuid)
+    #    plot_seg_pts(sample.uuid)
+    #    plot_ae(sample.uuid)
 
     return {
         "uuid": sample.uuid,
