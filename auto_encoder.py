@@ -20,7 +20,7 @@ TOTAL_LENGTH *= CHANNELS  # 输入总长度
 
 FILE_PATH = "./models/auto_encoder/"  # 模型保存路径
 DEVICE = torch.device("cuda" if torch.cuda.is_available() and not FORCE_CPU else "cpu")
-print("Using device:", DEVICE)
+# print("Using device:", DEVICE)
 
 
 class BP_AE(nn.Module):
@@ -43,7 +43,7 @@ class BP_AE(nn.Module):
 
 
 model = BP_AE(seq_len=TOTAL_LENGTH, latent_dim=round(TOTAL_LENGTH / 5)).to(DEVICE)
-print(model)
+# print(model)
 
 loss_func = nn.MSELoss()  # 损失函数
 

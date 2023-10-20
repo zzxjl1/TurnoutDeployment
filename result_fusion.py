@@ -6,7 +6,7 @@ from config import SUPPORTED_SAMPLE_TYPES, FORCE_CPU
 
 FILE_PATH = "./models/result_fusion.pth"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() and not FORCE_CPU else "cpu")
-print("Using device:", DEVICE)
+# print("Using device:", DEVICE)
 N_CLASSES = len(SUPPORTED_SAMPLE_TYPES)
 INPUT_VECTOR_SIZE = 3 * N_CLASSES  # 输入向量大小
 

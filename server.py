@@ -1,18 +1,47 @@
+import multiprocessing
+from config import DEBUG, FILE_OUTPUT, FORCE_CPU
+
+
+def is_main_process():
+    return "MainProcess" in multiprocessing.current_process().name
+
+
+def is_render_process():
+    return "PoolWorker" in multiprocessing.current_process().name
+
+
+if DEBUG:
+    import torch
+
+    print("---DEBUG MODE---")
+    print("当前进程:", multiprocessing.current_process())
+    print("是否渲染进程:", is_render_process())
+    print("是否Web服务器进程:", not is_render_process())
+    print("是否主进程:", is_main_process())
+    DEVICE = torch.device(
+        "cuda" if torch.cuda.is_available() and not FORCE_CPU else "cpu"
+    )
+    print("Using device:", DEVICE)
+
+
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
-import uvicorn
-import multiprocessing
+from visualization import plot_all
 from typing import Dict, Any, Union
 
-from sample import Sample
-from seg_score import GRUScore
-from gru_fcn import GRU_FCN, Vanilla_GRU, FCN_1D, Squeeze_Excite
-from auto_encoder import BP_AE
-from mlp import MLP
-from result_fusion import FuzzyLayer, FusedFuzzyDeepNet
-from config import DEBUG, FILE_OUTPUT
-from utils import mk_output_dir
-from visualization import plot_all
+if not is_render_process():
+
+    from sample import Sample
+    from seg_score import GRUScore
+    from gru_fcn import GRU_FCN, Vanilla_GRU, FCN_1D, Squeeze_Excite
+    from auto_encoder import BP_AE
+    from mlp import MLP
+    from result_fusion import FuzzyLayer, FusedFuzzyDeepNet
+
+    from pydantic import BaseModel
+    from utils import mk_output_dir
+    from config import DEBUG, FILE_OUTPUT
+
 
 app = FastAPI()
 
@@ -22,6 +51,21 @@ class RawData(BaseModel):
     point_interval: Union[int, None] = 40
 
 
+@app.on_event("startup")
+def startup_event():
+    mk_output_dir()
+    global renderProcessPool
+    renderProcessPool = multiprocessing.Pool(processes=2)
+    print(renderProcessPool)
+
+
+@app.on_event("shutdown")
+def shutdown_event():
+    renderProcessPool.close()
+    renderProcessPool.terminate()
+    renderProcessPool.join()
+
+
 @app.post("/detect")
 def predict(rawData: RawData, background_tasks: BackgroundTasks):
     sample = Sample(rawData.time_series, rawData.point_interval)
@@ -29,9 +73,8 @@ def predict(rawData: RawData, background_tasks: BackgroundTasks):
     prediction = sample.predict()
 
     if FILE_OUTPUT:
-        # renderProcessPool.queue.put(sample.uuid)
-        # print("rendering: ", sample.uuid)
-        background_tasks.add_task(plot_all, sample.uuid)
+        # background_tasks.add_task(plot_all, sample.uuid)
+        renderProcessPool.apply_async(plot_all, (sample.uuid,))
 
     return {
         "uuid": sample.uuid,
@@ -43,16 +86,15 @@ def predict(rawData: RawData, background_tasks: BackgroundTasks):
 
 
 if __name__ == "__main__":
-    mk_output_dir()
+    import uvicorn
 
-    # 获取 CPU 核心数量
     number_of_cores = multiprocessing.cpu_count()
-    # 设置 worker 数量
-    workers_num = 1 * number_of_cores if not DEBUG else 1
-    print(f"workers_num: {workers_num}")
+    print("CPU 核心数量: ", number_of_cores)
+    workers_num = number_of_cores // 2 if not DEBUG else 1
+    print("HTTP Server worker 数量设置为: ", workers_num)
 
     uvicorn.run(
-        "server:app",
+        "server:app",  # Use the import string of the class
         host="0.0.0.0",
         port=5000,
         reload=DEBUG,

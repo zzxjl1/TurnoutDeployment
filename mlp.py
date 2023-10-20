@@ -14,7 +14,7 @@ from config import SUPPORTED_SAMPLE_TYPES, FILE_OUTPUT, FORCE_CPU
 
 FILE_PATH = "./models/mlp_classification.pth"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() and not FORCE_CPU else "cpu")
-print("Using device:", DEVICE)
+# print("Using device:", DEVICE)
 
 INPUT_VECTOR_SIZE = 1 + 15 * len(SERIES_TO_ENCODE) * 3 - len(IGNORE_LIST)  # 输入向量的大小
 N_CLASSES = len(SUPPORTED_SAMPLE_TYPES)  # 分类数
@@ -33,7 +33,7 @@ MLP = nn.Sequential(
 )
 
 model = MLP.to(DEVICE)  # 使用BP模型
-print(model)
+# print(model)
 
 
 def predict_raw_input(x):
