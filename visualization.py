@@ -3,8 +3,6 @@ import pickle
 import matplotlib
 from matplotlib import patches
 
-from seg_score import time_to_index
-
 matplotlib.use("Agg")  # Use the Agg backend
 import matplotlib.pyplot as plt
 
@@ -41,6 +39,7 @@ def plot_seg_pts(uuid):
     def draw(
         path,
         duration,
+        duration_index,
         gru_score,
         d2_result,
         x,
@@ -57,7 +56,7 @@ def plot_seg_pts(uuid):
         ax_new.set_yticks([])  # 不显示y轴
         ax_new.set_xticks([])  # 不显示x轴
         ax_new.pcolormesh(
-            gru_score[: time_to_index(duration)].reshape(1, -1), cmap="Reds", alpha=0.7
+            gru_score[:duration_index].reshape(1, -1), cmap="Reds", alpha=0.7
         )
         # ax_new.plot(*model_output_to_xy(gru_score, end_sec=duration), "r")
         ax1 = ax.twinx()  # 生成第二个y轴
@@ -121,3 +120,13 @@ def plot_sample(uuid):
     with open(f"{path}/input_sample.pkl", "rb") as f:
         data = pickle.load(f)
         draw(path, data)
+
+
+def plot_all(uuid):
+    print("rendering: ", uuid)
+
+    plot_sample(uuid)
+    plot_seg_pts(uuid)
+    plot_ae(uuid)
+
+    print("rendered successful: ", uuid)

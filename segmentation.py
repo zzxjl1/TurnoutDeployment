@@ -103,6 +103,7 @@ def calc_segmentation_points_single_series(uuid, series, gru_score, name=""):
         kwargs = {
             "gru_score": gru_score,
             "duration": duration,
+            "duration_index": time_to_index(duration),
             "segmentation_point_1_x": segmentation_point_1_x,
             "segmentation_point_2_x": segmentation_point_2_x,
             "d2_result": d1_result,

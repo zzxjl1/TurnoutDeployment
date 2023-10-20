@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 import uvicorn
 import multiprocessing
@@ -12,7 +12,7 @@ from mlp import MLP
 from result_fusion import FuzzyLayer, FusedFuzzyDeepNet
 from config import DEBUG, FILE_OUTPUT
 from utils import mk_output_dir
-from visualization import plot_ae, plot_sample, plot_seg_pts
+from visualization import plot_all
 
 app = FastAPI()
 
@@ -23,15 +23,15 @@ class RawData(BaseModel):
 
 
 @app.post("/detect")
-def predict(rawData: RawData):
+def predict(rawData: RawData, background_tasks: BackgroundTasks):
     sample = Sample(rawData.time_series, rawData.point_interval)
     seg_points = sample.calc_seg_points()  # 计算分割点
     prediction = sample.predict()
 
-    # if FILE_OUTPUT:
-    #    plot_sample(sample.uuid)
-    #    plot_seg_pts(sample.uuid)
-    #    plot_ae(sample.uuid)
+    if FILE_OUTPUT:
+        # renderProcessPool.queue.put(sample.uuid)
+        # print("rendering: ", sample.uuid)
+        background_tasks.add_task(plot_all, sample.uuid)
 
     return {
         "uuid": sample.uuid,
@@ -44,10 +44,13 @@ def predict(rawData: RawData):
 
 if __name__ == "__main__":
     mk_output_dir()
+
     # 获取 CPU 核心数量
     number_of_cores = multiprocessing.cpu_count()
     # 设置 worker 数量
-    workers_num = 1 * number_of_cores + 1 if not DEBUG else 1
+    workers_num = 1 * number_of_cores if not DEBUG else 1
+    print(f"workers_num: {workers_num}")
+
     uvicorn.run(
         "server:app",
         host="0.0.0.0",
