@@ -1,8 +1,9 @@
-Flask
+fastapi
 matplotlib
 numpy
 pandas
-Requests
+requests
 scikit_learn
 scipy
 torch
+uvicorn

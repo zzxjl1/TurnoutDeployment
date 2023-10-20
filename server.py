@@ -57,4 +57,5 @@ if __name__ == "__main__":
         port=5000,
         reload=DEBUG,
         workers=workers_num,
+        # limit_concurrency=workers_num // 2, # 限制并发
     )
