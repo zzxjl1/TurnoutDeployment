@@ -139,5 +139,5 @@ if __name__ == "__main__":
 
     for sample in get_all_samples():
         print(sample)
-        send(sample, 10)
+        send(sample, 1)
         input()

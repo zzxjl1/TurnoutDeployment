@@ -26,7 +26,7 @@ if DEBUG:
 
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
-from visualization import plot_all
+import visualization
 from typing import Dict, Any, Union
 
 if not is_render_process():
@@ -55,15 +55,34 @@ class RawData(BaseModel):
 def startup_event():
     mk_output_dir()
     global renderProcessPool
-    renderProcessPool = multiprocessing.Pool(processes=2)
-    print(renderProcessPool)
+    renderProcessPool = multiprocessing.Pool(processes=5)
+    print(
+        f"当前web服务器进程:{multiprocessing.current_process().name},对应渲染进程池为：{renderProcessPool}"
+    )
 
 
 @app.on_event("shutdown")
 def shutdown_event():
-    renderProcessPool.close()
     renderProcessPool.terminate()
+    renderProcessPool.close()
     renderProcessPool.join()
+    print("渲染进程池已关闭！")
+
+
+def plot_and_upload(uuid: str):
+
+    print(f"开始生成{uuid}的可视化文件...")
+    ae = renderProcessPool.apply_async(visualization.plot_ae, (uuid,))
+    input_sample = renderProcessPool.apply_async(visualization.plot_sample, (uuid,))
+    seg_pts = renderProcessPool.apply_async(visualization.plot_seg_pts, (uuid,))
+
+    ae.wait()
+    input_sample.wait()
+    seg_pts.wait()
+
+    print(f"{uuid}的可视化文件已全部生成！")
+    print("开始上传...")
+    print("上传完成！")
 
 
 @app.post("/detect")
@@ -73,8 +92,7 @@ def predict(rawData: RawData, background_tasks: BackgroundTasks):
     prediction = sample.predict()
 
     if FILE_OUTPUT:
-        # background_tasks.add_task(plot_all, sample.uuid)
-        renderProcessPool.apply_async(plot_all, (sample.uuid,))
+        background_tasks.add_task(plot_and_upload, sample.uuid)
 
     return {
         "uuid": sample.uuid,
