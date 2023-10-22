@@ -37,11 +37,11 @@ def find_segmentation_point_1(x, y, threshold=SEGMENT_POINT_1_THRESHOLD):
     """寻找第一个分段点（between stage 1 and stage 2）"""
     peak_idx, _ = find_peaks(y, height=threshold)
     if threshold == 0:  # 递归中止条件，山高度阈值为0还找不到分段点，说明分段点不存在
-        print("segmentation point 1 not found")
+        # print("segmentation point 1 not found")
         return None, None
     if len(peak_idx) < 2:  # 找到的点不够，说明阈值太高，降低阈值再找
         threshold -= 1  # 降低“自适应阈值”
-        print("applying adaptive threshhold: ", threshold)
+        # print("applying adaptive threshhold: ", threshold)
         return find_segmentation_point_1(x, y, threshold)
     # print("peak_point_available: ", np.array(x)[peak_idx])
     index = peak_idx[1]  # 点的索引
@@ -62,7 +62,7 @@ def find_segmentation_point_2(
     prominences = properties["prominences"]  # 峰值的详细参数
     assert len(peak_idx) == len(prominences)  # 峰值的个数和峰值的详细参数个数相同
     if len(peak_idx) == 0 or len(prominences) == 0:  # 没有找到峰值，说明分段点不存在
-        print("segmentation point 2 not found")
+        # print("segmentation point 2 not found")
         return None, None
     # print("peak_point_available: ", np.array(x)[peak_idx])
     scores = []  # 用于存储每个峰值的分数
@@ -156,5 +156,5 @@ def calc_segmentation_points(uuid, sample):
     # 特殊情况：如果第二个分段点小于等于第一个分段点，丢弃
     if final_result[0] and final_result[1] and final_result[1] <= final_result[0]:
         final_result = final_result[0], None
-    print("segmentation final result: ", final_result)
+    # print("segmentation final result: ", final_result)
     return final_result

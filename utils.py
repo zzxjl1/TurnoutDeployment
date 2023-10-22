@@ -2,6 +2,7 @@ import os
 import numpy as np
 from config import TARGET_SAMPLE_RATE
 from config import SUPPORTED_SAMPLE_TYPES
+from config import N_WORKERS
 import scipy.interpolate
 from scipy import signal
 
@@ -128,3 +129,15 @@ def save_args(filepath, args):
     """保存参数"""
     with open(filepath, "wb") as f:
         pickle.dump(args, f)
+
+
+def get_workers_num():
+    """获取web server worker数量"""
+    import multiprocessing
+
+    number_of_cores = multiprocessing.cpu_count()
+    print("CPU 核心数量: ", number_of_cores)
+    workers_num = number_of_cores // 2 if N_WORKERS == -1 else N_WORKERS
+    assert workers_num > 0, "worker数量非法！"
+    print("web server worker数量设置为: ", workers_num)
+    return workers_num
