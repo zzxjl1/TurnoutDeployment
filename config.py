@@ -19,6 +19,7 @@ TARGET_SAMPLE_RATE = 25  # 模型输入采样率
 FORCE_CPU = False  # 强制使用CPU跑模型
 N_WORKERS = 3  # web server worker数量（-1为自动检测）
 RENDER_POOL_SIZE = 5  # 渲染进程池大小（per worker）
+CONCURRENCY_LIMIT = None  # 服务并发限制（None为不限制）,超过直接返回503
 
 """ 功能配置 """
 FILE_OUTPUT = True  # 是否输出文件

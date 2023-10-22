@@ -6,6 +6,7 @@ from config import (
     RENDER_POOL_SIZE,
     CALLBACK_URL,
     TASK_FINISH_CALLBACK,
+    CONCURRENCY_LIMIT,
 )
 
 
@@ -134,5 +135,5 @@ if __name__ == "__main__":
         port=5000,
         reload=DEBUG,
         workers=get_workers_num(),
-        # limit_concurrency=workers_num // 2, # 限制并发
+        limit_concurrency=CONCURRENCY_LIMIT,
     )
