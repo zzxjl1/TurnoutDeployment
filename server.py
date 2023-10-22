@@ -1,5 +1,12 @@
 import multiprocessing
-from config import DEBUG, FILE_OUTPUT, FORCE_CPU, RENDER_POOL_SIZE
+from config import (
+    DEBUG,
+    FILE_OUTPUT,
+    FORCE_CPU,
+    RENDER_POOL_SIZE,
+    CALLBACK_URL,
+    TASK_FINISH_CALLBACK,
+)
 
 
 def is_main_process():
@@ -38,9 +45,15 @@ if not is_render_process():
     from result_fusion import FuzzyLayer, FusedFuzzyDeepNet
     from utils import mk_output_dir
     from file_upload import FigureUploader
+    import requests
 
 
 app = FastAPI()
+
+
+@app.get("/")
+async def index():
+    return "Railway Turnout Guard V2.0"
 
 
 @app.on_event("startup")
@@ -61,6 +74,12 @@ def shutdown_event():
     print("渲染进程池已关闭！")
 
 
+def send_callback(uuid: str):
+    if not TASK_FINISH_CALLBACK:
+        return
+    requests.get(f"{CALLBACK_URL}?uuid={uuid}")
+
+
 def plot_and_upload(uuid: str):
     print(f"开始生成{uuid}的可视化文件...")
 
@@ -70,7 +89,8 @@ def plot_and_upload(uuid: str):
     print(f"开始上传{uuid}...")
     uploader = FigureUploader()
     uploader.upload_all(uuid)
-    print("上传完成！")
+    print(f"上传完成：{uuid}")
+    send_callback(uuid)
 
 
 class RawData(BaseModel):
@@ -98,9 +118,10 @@ def predict(rawData: RawData, background_tasks: BackgroundTasks):
     }
 
 
-@app.get("/")
-async def index():
-    return "Railway Turnout Guard V2.0"
+@app.get("/callback")
+async def callback(uuid: str):
+    print(f"收到{uuid}的成功回调！")
+    return
 
 
 if __name__ == "__main__":

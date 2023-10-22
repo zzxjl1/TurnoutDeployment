@@ -38,7 +38,7 @@ class FigureUploader:
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=UPLOAD_MAX_WORKERS,
             thread_name_prefix="uploader",
-        ) as executor:
+        ) as executor:  # 创建线程池
             tasks = [executor.submit(self.upload, file) for file in file_list]
 
         # 等待所有任务完成
