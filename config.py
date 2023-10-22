@@ -28,6 +28,7 @@ TASK_FINISH_CALLBACK = True  # 是否在渲染完成后回调
 CALLBACK_URL = "http://localhost:5000/callback"  # 完成后的回调地址（GET请求，参数为?uuid=xxxxx）
 
 """ 文件对象存储配置 """
+UPLOAD = True  # 是否上传文件
 BUCKET_NAME = "turnout-diagnosis"  # 存储桶名称
 ENDPOINT = "127.0.0.1:9000"
 ACCESS_KEY = "o27CAfziq7ww6HmYzxhF"

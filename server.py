@@ -7,6 +7,7 @@ from config import (
     CALLBACK_URL,
     TASK_FINISH_CALLBACK,
     CONCURRENCY_LIMIT,
+    UPLOAD,
 )
 
 
@@ -83,10 +84,12 @@ def send_callback(uuid: str):
 
 def plot_and_upload(uuid: str):
     print(f"开始生成{uuid}的可视化文件...")
-
     visualization.plot_all(uuid, renderProcessPool)
-
     print(f"{uuid}生成已全部生成！")
+
+    if not UPLOAD:
+        return
+
     print(f"开始上传{uuid}...")
     uploader = FigureUploader()
     uploader.upload_all(uuid)
