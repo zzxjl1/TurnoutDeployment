@@ -1,3 +1,4 @@
+import multiprocessing
 import os
 import pickle
 import matplotlib
@@ -5,6 +6,13 @@ from matplotlib import patches
 
 matplotlib.use("Agg")  # Use the Agg backend
 import matplotlib.pyplot as plt
+
+# 切换到当前目录
+import os
+
+parentdir = os.path.dirname(os.path.abspath(__file__))
+print(parentdir)
+os.chdir(parentdir)
 
 
 class AutoEncoderPlotter:
@@ -29,7 +37,7 @@ class AutoEncoderPlotter:
 
     @classmethod
     def plot(cls, uuid, processPool):
-        path = f"./file_output/{uuid}/AE"
+        path = f"./{uuid}/AE"
         raw_path = f"{path}/raw"
         tasks = []
         for filename in os.listdir(raw_path):
@@ -103,7 +111,7 @@ class SegmentationPlotter:
 
     @classmethod
     def plot(cls, uuid, processPool):
-        path = f"./file_output/{uuid}/segmentations"
+        path = f"./{uuid}/segmentations"
         raw_path = f"{path}/raw"
         tasks = []
         for filename in os.listdir(raw_path):
@@ -138,7 +146,7 @@ class SamplePlotter:
 
     @classmethod
     def plot(cls, uuid, processPool):
-        path = f"./file_output/{uuid}"
+        path = f"./{uuid}"
         with open(f"{path}/input_sample.pkl", "rb") as f:
             data = pickle.load(f)
             # draw(path, data)
@@ -147,6 +155,8 @@ class SamplePlotter:
 
 
 def plot_all(uuid, processPool):
+    print("rendering: ", uuid)
+
     ae_tasks = AutoEncoderPlotter.plot(uuid, processPool)
     input_sample = SamplePlotter.plot(uuid, processPool)
     seg_pt_tasks = SegmentationPlotter.plot(uuid, processPool)
@@ -154,3 +164,17 @@ def plot_all(uuid, processPool):
     tasks = ae_tasks + [input_sample] + seg_pt_tasks
     for task in tasks:
         task.wait()
+
+    print("rendered successful: ", uuid)
+
+
+if __name__ == "__main__":
+    import time
+
+    renderProcessPool = multiprocessing.Pool(processes=5)
+    times = 10
+    for i in range(times):
+        begin = time.time()
+        plot_all("a4c6b8ca-e015-45ce-a586-685c91f00e93", renderProcessPool)
+        end = time.time()
+        print(f"第{i+1}次耗时：{end-begin}")

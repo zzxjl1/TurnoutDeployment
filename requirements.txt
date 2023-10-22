@@ -7,3 +7,4 @@ scikit_learn
 scipy
 torch
 uvicorn
+minio

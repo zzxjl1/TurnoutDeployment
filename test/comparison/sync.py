@@ -6,10 +6,17 @@ from matplotlib import patches
 matplotlib.use("Agg")  # Use the Agg backend
 import matplotlib.pyplot as plt
 
+# 切换到当前目录
+import os
+import sys
 
-class AutoEncoderPlotter:
-    @classmethod
-    def draw(cls, path, channels, y_before, y_after, ae_type, loss, series_to_encode):
+parentdir = os.path.dirname(os.path.abspath(__file__))
+print(parentdir)
+os.chdir(parentdir)
+
+
+def plot_ae(uuid):
+    def draw(path, channels, y_before, y_after, ae_type, loss, series_to_encode):
         figure, (axes) = plt.subplots(channels, 1, figsize=(12, 5))
         for i in range(channels):
             ax = axes[i]
@@ -27,27 +34,17 @@ class AutoEncoderPlotter:
         plt.savefig(f"{path}/{ae_type}", dpi=150)
         plt.close(figure)
 
-    @classmethod
-    def plot(cls, uuid, processPool):
-        path = f"./file_output/{uuid}/AE"
-        raw_path = f"{path}/raw"
-        tasks = []
-        for filename in os.listdir(raw_path):
-            if filename.endswith(".pkl"):
-                with open(f"{raw_path}/{filename}", "rb") as f:
-                    kwargs = pickle.load(f)
-                    # draw(path, **kwargs)
-                    task = processPool.apply_async(
-                        cls.draw, args=(path,), kwds=kwargs, error_callback=print
-                    )
-                    tasks.append(task)
-        return tasks
+    path = f"./{uuid}/AE"
+    raw_path = f"{path}/raw"
+    for filename in os.listdir(raw_path):
+        if filename.endswith(".pkl"):
+            with open(f"{raw_path}/{filename}", "rb") as f:
+                kwargs = pickle.load(f)
+                draw(path, **kwargs)
 
 
-class SegmentationPlotter:
-    @classmethod
+def plot_seg_pts(uuid):
     def draw(
-        cls,
         path,
         duration,
         duration_index,
@@ -101,26 +98,17 @@ class SegmentationPlotter:
         plt.savefig(f"{path}/{name}", dpi=150)
         plt.close(fig)
 
-    @classmethod
-    def plot(cls, uuid, processPool):
-        path = f"./file_output/{uuid}/segmentations"
-        raw_path = f"{path}/raw"
-        tasks = []
-        for filename in os.listdir(raw_path):
-            if filename.endswith(".pkl"):
-                with open(f"{raw_path}/{filename}", "rb") as f:
-                    kwargs = pickle.load(f)
-                    # draw(path, **kwargs)
-                    task = processPool.apply_async(
-                        cls.draw, args=(path,), kwds=kwargs, error_callback=print
-                    )
-                    tasks.append(task)
-        return tasks
+    path = f"./{uuid}/segmentations"
+    raw_path = f"{path}/raw"
+    for filename in os.listdir(raw_path):
+        if filename.endswith(".pkl"):
+            with open(f"{raw_path}/{filename}", "rb") as f:
+                kwargs = pickle.load(f)
+                draw(path, **kwargs)
 
 
-class SamplePlotter:
-    @classmethod
-    def draw(cls, path, data):
+def plot_sample(uuid):
+    def draw(path, data):
         fig = plt.figure(figsize=(9, 2))
         ax1 = fig.subplots()
         for phase in ["A", "B", "C"]:
@@ -136,21 +124,28 @@ class SamplePlotter:
         plt.savefig(f"{path}/input_sample.png", dpi=150)
         plt.close(fig)
 
-    @classmethod
-    def plot(cls, uuid, processPool):
-        path = f"./file_output/{uuid}"
-        with open(f"{path}/input_sample.pkl", "rb") as f:
-            data = pickle.load(f)
-            # draw(path, data)
-            task = processPool.apply_async(cls.draw, (path, data), error_callback=print)
-            return task
+    path = f"./{uuid}"
+    with open(f"{path}/input_sample.pkl", "rb") as f:
+        data = pickle.load(f)
+        draw(path, data)
 
 
-def plot_all(uuid, processPool):
-    ae_tasks = AutoEncoderPlotter.plot(uuid, processPool)
-    input_sample = SamplePlotter.plot(uuid, processPool)
-    seg_pt_tasks = SegmentationPlotter.plot(uuid, processPool)
+def plot_all(uuid):
+    print("rendering: ", uuid)
 
-    tasks = ae_tasks + [input_sample] + seg_pt_tasks
-    for task in tasks:
-        task.wait()
+    plot_sample(uuid)
+    plot_seg_pts(uuid)
+    plot_ae(uuid)
+
+    print("rendered successful: ", uuid)
+
+
+if __name__ == "__main__":
+    import time
+
+    times = 10
+    for i in range(times):
+        begin = time.time()
+        plot_all("a4c6b8ca-e015-45ce-a586-685c91f00e93")
+        end = time.time()
+        print(f"第{i+1}次耗时：{end-begin}")

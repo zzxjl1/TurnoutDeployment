@@ -30,7 +30,6 @@ import visualization
 from typing import Dict, Any, Union
 
 if not is_render_process():
-
     from sample import Sample
     from seg_score import GRUScore
     from gru_fcn import GRU_FCN, Vanilla_GRU, FCN_1D, Squeeze_Excite
@@ -44,11 +43,6 @@ if not is_render_process():
 
 
 app = FastAPI()
-
-
-class RawData(BaseModel):
-    time_series: Dict[str, list[float]]
-    point_interval: Union[int, None] = 40
 
 
 @app.on_event("startup")
@@ -70,19 +64,18 @@ def shutdown_event():
 
 
 def plot_and_upload(uuid: str):
-
     print(f"开始生成{uuid}的可视化文件...")
-    ae = renderProcessPool.apply_async(visualization.plot_ae, (uuid,))
-    input_sample = renderProcessPool.apply_async(visualization.plot_sample, (uuid,))
-    seg_pts = renderProcessPool.apply_async(visualization.plot_seg_pts, (uuid,))
 
-    ae.wait()
-    input_sample.wait()
-    seg_pts.wait()
+    visualization.plot_all(uuid, renderProcessPool)
 
     print(f"{uuid}的可视化文件已全部生成！")
     print("开始上传...")
     print("上传完成！")
+
+
+class RawData(BaseModel):
+    time_series: Dict[str, list[float]]
+    point_interval: Union[int, None] = 40
 
 
 @app.post("/detect")
@@ -101,6 +94,11 @@ def predict(rawData: RawData, background_tasks: BackgroundTasks):
         "fault_diagnosis": prediction,
         "file_output": FILE_OUTPUT,
     }
+
+
+@app.get("/")
+async def index():
+    return "Railway Turnout Guard V2.0"
 
 
 if __name__ == "__main__":
