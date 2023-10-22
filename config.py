@@ -15,17 +15,20 @@ SUPPORTED_SAMPLE_TYPES = [
 ]  # 支持的样本类型
 TARGET_SAMPLE_RATE = 25  # 模型输入采样率
 
+
+""" 基础配置 """
+HOST = "0.0.0.0"  # web server监听地址
+PORT = 5000  # 端口
+FILE_OUTPUT = True  # 是否输出文件
+DEBUG = False  # 是否开启web server调试模式
+TASK_FINISH_CALLBACK = True  # 是否在渲染完成后回调
+CALLBACK_URL = "http://localhost:5000/callback"  # 完成后的回调地址（GET请求，参数为?uuid=xxxxx）
+
 """ 性能参数配置 """
 FORCE_CPU = False  # 强制使用CPU跑模型
 N_WORKERS = 3  # web server worker数量（-1为自动检测）
 RENDER_POOL_SIZE = 5  # 渲染进程池大小（per worker）
 CONCURRENCY_LIMIT = None  # 服务最大并发数（None为不限制）,超过直接返回503
-
-""" 功能配置 """
-FILE_OUTPUT = True  # 是否输出文件
-DEBUG = False  # 是否开启web server调试模式
-TASK_FINISH_CALLBACK = True  # 是否在渲染完成后回调
-CALLBACK_URL = "http://localhost:5000/callback"  # 完成后的回调地址（GET请求，参数为?uuid=xxxxx）
 
 """ 文件对象存储配置 """
 UPLOAD = True  # 是否上传文件

@@ -8,6 +8,8 @@ from config import (
     TASK_FINISH_CALLBACK,
     CONCURRENCY_LIMIT,
     UPLOAD,
+    HOST,
+    PORT,
 )
 
 
@@ -134,8 +136,8 @@ if __name__ == "__main__":
 
     uvicorn.run(
         "server:app",  # Use the import string of the class
-        host="0.0.0.0",
-        port=5000,
+        host=HOST,
+        port=PORT,
         reload=DEBUG,
         workers=get_workers_num(),
         limit_concurrency=CONCURRENCY_LIMIT,
