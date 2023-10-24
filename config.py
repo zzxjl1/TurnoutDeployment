@@ -21,8 +21,6 @@ HOST = "0.0.0.0"  # web server监听地址
 PORT = 5000  # 端口
 FILE_OUTPUT = True  # 是否输出文件
 DEBUG = False  # 是否开启web server调试模式
-TASK_FINISH_CALLBACK = True  # 是否在渲染完成后回调
-CALLBACK_URL = "http://localhost:5000/callback"  # 完成后的回调地址（GET请求，参数为?uuid=xxxxx）
 
 """ 性能参数配置 """
 FORCE_CPU = False  # 强制使用CPU跑模型
@@ -37,3 +35,5 @@ ENDPOINT = "127.0.0.1:9000"
 ACCESS_KEY = "o27CAfziq7ww6HmYzxhF"
 SECRET_KEY = "oaRxky2HzDoBmpA7yW9iPNPc2ESf63SpaMyh3k0E"
 UPLOAD_MAX_WORKERS = 3  # 文件上传最大线程数（per uploader）
+TASK_FINISH_CALLBACK = True  # 是否在上传完成后回调
+CALLBACK_URL = "http://localhost:5000/callback"  # 完成后的回调地址（GET请求，参数为?uuid=xxxxx）
