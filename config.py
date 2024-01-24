@@ -24,8 +24,8 @@ DEBUG = False  # 是否开启web server调试模式
 
 """ 性能参数配置 """
 FORCE_CPU = True  # 强制使用CPU跑模型
-N_WORKERS = 1  # web server worker数量（-1为自动检测）
-RENDER_POOL_SIZE = 1  # 渲染进程池大小（per worker）
+N_WORKERS = 2  # web server worker数量（-1为自动检测）
+RENDER_POOL_SIZE = 3  # 渲染进程池大小（per worker）
 CONCURRENCY_LIMIT = None  # 服务最大并发数（None为不限制）,超过直接返回503
 
 """ 文件对象存储配置 """

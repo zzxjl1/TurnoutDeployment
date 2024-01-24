@@ -199,6 +199,7 @@ if __name__ == "__main__":
 
     for sample, type in zip(samples, types):
         future = executor.submit(send, sample, type)
+        # input(f"Press Enter to continue...")
         threads.append(future)
 
     total_response_time = 0

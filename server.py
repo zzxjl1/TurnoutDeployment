@@ -101,7 +101,7 @@ def del_after_upload(uuid: str):
 def plot_and_upload(uuid: str):
     print(f"开始生成{uuid}的可视化文件...")
     visualization.plot_all(uuid, renderProcessPool)
-    print(f"{uuid}生成已全部生成！")
+    print(f"{uuid}生成已全部完成！")
     # del_after_upload(uuid) # DEBUG ONLY
 
     if not UPLOAD:
