@@ -211,3 +211,4 @@ if __name__ == "__main__":
         total_requests += 1
 
     print("All done")
+    os._exit(0)

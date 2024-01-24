@@ -36,4 +36,5 @@ ACCESS_KEY = "o27CAfziq7ww6HmYzxhF"
 SECRET_KEY = "oaRxky2HzDoBmpA7yW9iPNPc2ESf63SpaMyh3k0E"
 UPLOAD_MAX_WORKERS = 3  # 文件上传最大线程数（per uploader）
 TASK_FINISH_CALLBACK = True  # 是否在上传完成后回调
+DELETE_AFTER_UPLOAD = True  # 是否在上传完成后删除本地文件
 CALLBACK_URL = "http://localhost:5000/callback"  # 完成后的回调地址（GET请求，参数为?uuid=xxxxx）

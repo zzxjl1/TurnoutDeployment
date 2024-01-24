@@ -1,4 +1,5 @@
 import multiprocessing
+from concurrent.futures import ThreadPoolExecutor
 from config import (
     DEBUG,
     FILE_OUTPUT,
@@ -10,6 +11,7 @@ from config import (
     UPLOAD,
     HOST,
     PORT,
+    DELETE_AFTER_UPLOAD,
 )
 
 
@@ -50,6 +52,7 @@ if not is_render_process():
     from utils import mk_output_dir
     from file_upload import FigureUploader
     import requests
+    import shutil
 
 
 app = FastAPI()
@@ -64,10 +67,14 @@ async def index():
 def startup_event():
     mk_output_dir()
     global renderProcessPool
-    renderProcessPool = multiprocessing.Pool(processes=RENDER_POOL_SIZE)
-    print(
-        f"当前web服务器进程:{multiprocessing.current_process().name},对应渲染进程池为：{renderProcessPool}"
+    renderProcessPool = multiprocessing.get_context("spawn").Pool(
+        processes=RENDER_POOL_SIZE
     )
+    global backgroundTasksPool
+    backgroundTasksPool = ThreadPoolExecutor(max_workers=RENDER_POOL_SIZE)
+    print(f"当前web服务器进程: {multiprocessing.current_process().name}")
+    print(f"对应渲染进程池为: {renderProcessPool}")
+    print(f"后台任务线程池为: {backgroundTasksPool}")
 
 
 @app.on_event("shutdown")
@@ -84,10 +91,18 @@ def send_callback(uuid: str):
     requests.get(f"{CALLBACK_URL}?uuid={uuid}")
 
 
+def del_after_upload(uuid: str):
+    if not DELETE_AFTER_UPLOAD:
+        return
+    shutil.rmtree(f"./file_output/{uuid}")
+    print(f"{uuid}的本地文件已删除！")
+
+
 def plot_and_upload(uuid: str):
     print(f"开始生成{uuid}的可视化文件...")
     visualization.plot_all(uuid, renderProcessPool)
     print(f"{uuid}生成已全部生成！")
+    # del_after_upload(uuid) # DEBUG ONLY
 
     if not UPLOAD:
         return
@@ -97,6 +112,7 @@ def plot_and_upload(uuid: str):
     uploader.upload_all(uuid)
     print(f"上传完成：{uuid}")
     send_callback(uuid)
+    del_after_upload(uuid)
 
 
 class RawData(BaseModel):
@@ -105,7 +121,7 @@ class RawData(BaseModel):
 
 
 @app.post("/detect")
-def predict(rawData: RawData, background_tasks: BackgroundTasks):
+async def predict(rawData: RawData, background_tasks: BackgroundTasks):
     sample = Sample(rawData.time_series, rawData.point_interval)
     seg_points = sample.calc_seg_points()  # 计算分割点
     print("分割点:", seg_points)
@@ -113,7 +129,9 @@ def predict(rawData: RawData, background_tasks: BackgroundTasks):
     print("预测结果:", prediction)
 
     if FILE_OUTPUT:
-        background_tasks.add_task(plot_and_upload, sample.uuid)
+        # background_tasks.add_task(plot_and_upload, sample.uuid)
+        # threading.Thread(target=plot_and_upload, args=(sample.uuid,)).start()
+        backgroundTasksPool.submit(plot_and_upload, sample.uuid)
 
     return {
         "uuid": sample.uuid,
