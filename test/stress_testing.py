@@ -168,12 +168,33 @@ def send(sample, ground_truth):
     return r.json()["fault_diagnosis"], ground_truth, response_time
 
 
+import threading
+
+
+def show():
+    while 1:
+        time.sleep(1)
+        if total_requests == 0:
+            continue
+        end_time_all = time.time()
+        elapsed_time_all = end_time_all - start_time_all
+        tps = total_requests / elapsed_time_all
+        avg_response_time = total_response_time / total_requests
+
+        print("=========================================")
+        print(f"Total Requests: {total_requests}")
+        print(f"Total Elapsed Time: {elapsed_time_all} seconds")
+        print(f"TPS (Transactions Per Second): {tps}")
+        print(f"Average Response Time: {avg_response_time} seconds")
+        print("=========================================")
+
+
 if __name__ == "__main__":
     samples, types = get_all_samples()
 
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=10)
     threads = []
-    total_requests = len(samples)
+    total_requests = 0
     start_time_all = time.time()
 
     for sample, type in zip(samples, types):
@@ -181,20 +202,12 @@ if __name__ == "__main__":
         threads.append(future)
 
     total_response_time = 0
+    threading.Thread(target=show).start()
 
-    for thread in threads:
-        result = thread.result()
+    for future in concurrent.futures.as_completed(threads):
+        result = future.result()
         _, _, response_time = result
         total_response_time += response_time
+        total_requests += 1
 
-    end_time_all = time.time()
-    elapsed_time_all = end_time_all - start_time_all
-
-    tps = total_requests / elapsed_time_all
-    avg_response_time = total_response_time / total_requests
-
-    print(f"Total Requests: {total_requests}")
-    print(f"Total Elapsed Time: {elapsed_time_all} seconds")
-    print(f"TPS (Transactions Per Second): {tps}")
-    print(f"Average Response Time: {avg_response_time} seconds")
     print("All done")

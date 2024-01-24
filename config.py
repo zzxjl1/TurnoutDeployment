@@ -23,13 +23,13 @@ FILE_OUTPUT = True  # 是否输出文件
 DEBUG = False  # 是否开启web server调试模式
 
 """ 性能参数配置 """
-FORCE_CPU = False  # 强制使用CPU跑模型
-N_WORKERS = 3  # web server worker数量（-1为自动检测）
-RENDER_POOL_SIZE = 5  # 渲染进程池大小（per worker）
+FORCE_CPU = True  # 强制使用CPU跑模型
+N_WORKERS = 1  # web server worker数量（-1为自动检测）
+RENDER_POOL_SIZE = 1  # 渲染进程池大小（per worker）
 CONCURRENCY_LIMIT = None  # 服务最大并发数（None为不限制）,超过直接返回503
 
 """ 文件对象存储配置 """
-UPLOAD = True  # 是否上传文件
+UPLOAD = False  # 是否上传文件
 BUCKET_NAME = "turnout-diagnosis"  # 存储桶名称
 ENDPOINT = "127.0.0.1:9000"
 ACCESS_KEY = "o27CAfziq7ww6HmYzxhF"
