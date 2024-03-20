@@ -1,5 +1,5 @@
 import multiprocessing
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from config import (
     DEBUG,
     FILE_OUTPUT,
@@ -12,6 +12,7 @@ from config import (
     HOST,
     PORT,
     DELETE_AFTER_UPLOAD,
+    RENDER_POOL_MAX_TASKS_PER_PROC
 )
 
 
@@ -68,7 +69,8 @@ def startup_event():
     mk_output_dir()
     global renderProcessPool
     renderProcessPool = multiprocessing.get_context("spawn").Pool(
-        processes=RENDER_POOL_SIZE
+        processes=RENDER_POOL_SIZE,
+        maxtasksperchild=RENDER_POOL_MAX_TASKS_PER_PROC
     )
     global backgroundTasksPool
     backgroundTasksPool = ThreadPoolExecutor(max_workers=RENDER_POOL_SIZE)
@@ -83,6 +85,8 @@ def shutdown_event():
     renderProcessPool.close()
     renderProcessPool.join()
     print("渲染进程池已关闭！")
+    backgroundTasksPool.shutdown()
+    print("后台任务线程池已关闭！")
 
 
 def send_callback(uuid: str):

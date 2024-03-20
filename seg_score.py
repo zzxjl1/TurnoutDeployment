@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from config import TARGET_SAMPLE_RATE, FORCE_CPU
-from utils import find_nearest, parse_sample
+from utils import find_nearest, parse_sample, load_model
 
 FILE_PATH = "./models/gru_score.pth"
 TIME_SERIES_DURATION = 15  # 15s
@@ -20,7 +20,6 @@ SEQ_LENGTH = TIME_SERIES_LENGTH // POOLING_FACTOR_PER_TIME_SERIES  # 降采样�
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() and not FORCE_CPU else "cpu")
 CHANNELS = len(SERIES_TO_ENCODE)  # 通道数
-TRAIN_ONLY_WITH_NORMAL = False  # 只用正常数据训练（！使用故障样本训练会无法收敛！）
 
 
 class GRUScore(nn.Module):
@@ -76,6 +75,7 @@ class GRUScore(nn.Module):
 
 
 model = GRUScore(input_size=CHANNELS, hidden_size=SEQ_LENGTH, output_size=1).to(DEVICE)
+model.load_state_dict(load_model(FILE_PATH, DEVICE))
 
 
 def predict(t) -> np.ndarray:
@@ -83,9 +83,6 @@ def predict(t) -> np.ndarray:
     assert batch_size == 1
     assert channels == CHANNELS
     assert seq_len == SEQ_LENGTH
-    assert os.path.exists(FILE_PATH), "please train() first"
-
-    model = torch.load(FILE_PATH, map_location=DEVICE).to(DEVICE)
     input = t.transpose(0, 2, 1)
     input = torch.from_numpy(input).float().to(DEVICE)
     out = model(input)

@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from config import TARGET_SAMPLE_RATE, SUPPORTED_SAMPLE_TYPES, FORCE_CPU
-from utils import parse_sample
+from utils import parse_sample, load_model
 
 FILE_PATH = "./models/gru_classification.pth"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() and not FORCE_CPU else "cpu")
@@ -143,6 +143,7 @@ class GRU_FCN(nn.Module):
 model = GRU_FCN(
     seq_len=SEQ_LENGTH, n_class=N_CLASSES, dropout_rate=0.2, hidden_size=128
 ).to(DEVICE)
+model.load_state_dict(load_model(FILE_PATH, DEVICE))
 
 
 def model_input_parse(sample, segmentations=None, batch_simulation=True):
@@ -165,8 +166,6 @@ def model_input_parse(sample, segmentations=None, batch_simulation=True):
 
 
 def predict_raw_input(x):
-    assert os.path.exists(FILE_PATH), "model not found，please train first"
-    model = torch.load(FILE_PATH, map_location=DEVICE).to(DEVICE)  # 加载模型
 
     # 转tensor
     x = torch.tensor(x, dtype=torch.float32).to(DEVICE)

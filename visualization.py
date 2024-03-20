@@ -2,6 +2,7 @@ import os
 import pickle
 import matplotlib
 from matplotlib import patches
+from config import RENDER_POOL_MAX_QUQUE_SIZE, DEBUG
 
 matplotlib.use("Agg")  # Use the Agg backend
 import matplotlib.pyplot as plt
@@ -147,6 +148,14 @@ class SamplePlotter:
 
 
 def plot_all(uuid, processPool):
+    queue_size = processPool._taskqueue.qsize()
+    if DEBUG:
+        import multiprocessing
+        print(f"{multiprocessing.current_process().name}渲染进程池任务堆积数：{queue_size}")
+    if queue_size > RENDER_POOL_MAX_QUQUE_SIZE:
+        print(f"当前渲染进程池发生任务堆积，触发拒绝策略！")
+        raise RuntimeError("渲染进程池任务堆积！")
+
     ae_tasks = AutoEncoderPlotter.plot(uuid, processPool)
     input_sample = SamplePlotter.plot(uuid, processPool)
     seg_pt_tasks = SegmentationPlotter.plot(uuid, processPool)

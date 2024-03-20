@@ -20,12 +20,14 @@ TARGET_SAMPLE_RATE = 25  # 模型输入采样率
 HOST = "0.0.0.0"  # web server监听地址
 PORT = 5000  # 端口
 FILE_OUTPUT = True  # 是否输出文件
-DEBUG = False  # 是否开启web server调试模式
+DEBUG = False  # 是否开启调试模式
 
 """ 性能参数配置 """
 FORCE_CPU = True  # 强制使用CPU跑模型
-N_WORKERS = 2  # web server worker数量（-1为自动检测）
+N_WORKERS = -1  # web server worker数量（-1为自动检测）
 RENDER_POOL_SIZE = 3  # 渲染进程池大小（per worker）
+RENDER_POOL_MAX_TASKS_PER_PROC = 200 # 渲染进程最大复用次数（避免渲染过程中的内存泄漏）
+RENDER_POOL_MAX_QUQUE_SIZE = 1000  # 渲染进程池最大任务堆积数
 CONCURRENCY_LIMIT = None  # 服务最大并发数（None为不限制）,超过直接返回503
 
 """ 文件对象存储配置 """

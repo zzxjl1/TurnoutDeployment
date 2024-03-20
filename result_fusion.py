@@ -1,8 +1,7 @@
-import os
-import random
 import torch
 from torch import nn
 from config import SUPPORTED_SAMPLE_TYPES, FORCE_CPU
+from utils import load_model
 
 FILE_PATH = "./models/result_fusion.pth"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() and not FORCE_CPU else "cpu")
@@ -108,10 +107,11 @@ class FusedFuzzyDeepNet(nn.Module):
 
 
 model = FusedFuzzyDeepNet(
-    input_vector_size=INPUT_VECTOR_SIZE, fuzz_vector_size=8, num_class=N_CLASSES
-).to(
-    DEVICE
-)  # FNN模型
+    input_vector_size=INPUT_VECTOR_SIZE,
+    fuzz_vector_size=8,
+    num_class=N_CLASSES
+).to(DEVICE)  # FNN模型
+model.load_state_dict(load_model(FILE_PATH, DEVICE))
 
 
 def model_input_parse(bp_result, gru_fcn_result, ae_result, batch_simulation=True):
@@ -123,8 +123,6 @@ def model_input_parse(bp_result, gru_fcn_result, ae_result, batch_simulation=Tru
 
 
 def predict(bp_result, gru_fcn_result, ae_result):
-    assert os.path.exists(FILE_PATH), "model file not exists, please train first"
-    model = torch.load(FILE_PATH, map_location=DEVICE).to(DEVICE)
     model_input = model_input_parse(bp_result, gru_fcn_result, ae_result)
     model.eval()
     with torch.no_grad():

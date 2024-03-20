@@ -159,6 +159,7 @@ def send(sample, ground_truth):
     # print(t)
 
     r = requests.post(url, json=t)
+    print(r.json())
     return r.json()["fault_diagnosis"], ground_truth
 
 

@@ -6,10 +6,8 @@ pytorch implementation of dnn classification
 import os
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from extract_features import IGNORE_LIST, calc_features, SERIES_TO_ENCODE
-from seg_score import GRUScore
-from utils import get_label_from_result_pretty, parse_predict_result
+from utils import load_model
 from config import SUPPORTED_SAMPLE_TYPES, FILE_OUTPUT, FORCE_CPU
 
 FILE_PATH = "./models/mlp_classification.pth"
@@ -34,12 +32,11 @@ MLP = nn.Sequential(
 
 model = MLP.to(DEVICE)  # 使用BP模型
 # print(model)
+model.load_state_dict(load_model(FILE_PATH, DEVICE))  # 加载模型
 
 
 def predict_raw_input(x):
     """预测,输入为原始数据，直接入模型"""
-    assert os.path.exists(FILE_PATH), "model not found, please run train() first!"
-    model = torch.load(FILE_PATH, map_location=DEVICE).to(DEVICE)  # 加载模型
     model.eval()  # 验证模式
     with torch.no_grad():
         output = model(x)

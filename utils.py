@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import torch
 from config import TARGET_SAMPLE_RATE
 from config import SUPPORTED_SAMPLE_TYPES
 from config import N_WORKERS
@@ -137,7 +138,13 @@ def get_workers_num():
 
     number_of_cores = multiprocessing.cpu_count()
     print("CPU 核心数量: ", number_of_cores)
-    workers_num = number_of_cores // 2 if N_WORKERS == -1 else N_WORKERS
-    assert workers_num > 0, "worker数量非法！"
+    workers_num = (number_of_cores-1) // 8 if N_WORKERS == -1 else N_WORKERS
+    assert workers_num >= 0, "worker数量非法！"
     print("web server worker数量设置为: ", workers_num)
     return workers_num
+
+def load_model(FILE_PATH,DEVICE):
+    assert os.path.exists(FILE_PATH), f"{FILE_PATH} not found, please train first!"
+    model = torch.load(FILE_PATH, map_location=DEVICE)  # 加载模型
+    print(f"模型{FILE_PATH}加载成功!")
+    return model

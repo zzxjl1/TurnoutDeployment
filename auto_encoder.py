@@ -7,7 +7,7 @@ import os
 import numpy as np
 import torch
 import torch.nn as nn
-from utils import parse_sample, save_args
+from utils import parse_sample, save_args,load_model
 from config import FILE_OUTPUT, FORCE_CPU, TARGET_SAMPLE_RATE, SUPPORTED_SAMPLE_TYPES
 
 POOLING_FACTOR_PER_TIME_SERIES = 5  # 每条时间序列的降采样因子
@@ -42,10 +42,13 @@ class BP_AE(nn.Module):
         return x
 
 
-model = BP_AE(seq_len=TOTAL_LENGTH, latent_dim=round(TOTAL_LENGTH / 5)).to(DEVICE)
-# print(model)
-
 loss_func = nn.MSELoss()  # 损失函数
+models = {} # 预载入的所有模型
+for type in SUPPORTED_SAMPLE_TYPES:
+    model_path = f"{FILE_PATH}{type}.pth"
+    model = BP_AE(seq_len=TOTAL_LENGTH, latent_dim=round(TOTAL_LENGTH / 5)).to(DEVICE)
+    model.load_state_dict(load_model(model_path, DEVICE))
+    models[type] = model
 
 
 def predict_raw_input(x):
@@ -54,9 +57,7 @@ def predict_raw_input(x):
     results = {}
     losses = {}
     for type in SUPPORTED_SAMPLE_TYPES:
-        model_path = f"{FILE_PATH}{type}.pth"
-        assert os.path.exists(model_path), f"model {type} not found, please train first"
-        model = torch.load(model_path, map_location=DEVICE).to(DEVICE)
+        model = models[type]
         model.eval()
         with torch.no_grad():
             result = model(x)
