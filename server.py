@@ -1,5 +1,5 @@
 import multiprocessing
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from config import (
     DEBUG,
     FILE_OUTPUT,
@@ -12,7 +12,7 @@ from config import (
     HOST,
     PORT,
     DELETE_AFTER_UPLOAD,
-    RENDER_POOL_MAX_TASKS_PER_PROC,
+    RENDER_POOL_MAX_TASKS_PER_PROC
 )
 
 
@@ -72,7 +72,7 @@ def startup_event():
     global renderProcessPool
     renderProcessPool = multiprocessing.get_context("spawn").Pool(
         processes=RENDER_POOL_SIZE,
-        maxtasksperchild=RENDER_POOL_MAX_TASKS_PER_PROC,
+        maxtasksperchild=RENDER_POOL_MAX_TASKS_PER_PROC
     )
     global backgroundTasksPool
     backgroundTasksPool = ThreadPoolExecutor(max_workers=RENDER_POOL_SIZE)
