@@ -1,5 +1,5 @@
 import multiprocessing
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from config import (
     DEBUG,
     FILE_OUTPUT,
@@ -12,7 +12,7 @@ from config import (
     HOST,
     PORT,
     DELETE_AFTER_UPLOAD,
-    RENDER_POOL_MAX_TASKS_PER_PROC
+    RENDER_POOL_MAX_TASKS_PER_PROC,
 )
 
 
@@ -55,6 +55,8 @@ if not is_render_process():
     import requests
     import shutil
 
+    minioUploader = FigureUploader()
+
 
 app = FastAPI()
 
@@ -70,7 +72,7 @@ def startup_event():
     global renderProcessPool
     renderProcessPool = multiprocessing.get_context("spawn").Pool(
         processes=RENDER_POOL_SIZE,
-        maxtasksperchild=RENDER_POOL_MAX_TASKS_PER_PROC
+        maxtasksperchild=RENDER_POOL_MAX_TASKS_PER_PROC,
     )
     global backgroundTasksPool
     backgroundTasksPool = ThreadPoolExecutor(max_workers=RENDER_POOL_SIZE)
@@ -112,8 +114,7 @@ def plot_and_upload(uuid: str):
         return
 
     print(f"开始上传{uuid}...")
-    uploader = FigureUploader()
-    uploader.upload_all(uuid)
+    minioUploader.upload_all(uuid)
     print(f"上传完成：{uuid}")
     send_callback(uuid)
     del_after_upload(uuid)
@@ -125,7 +126,8 @@ class RawData(BaseModel):
 
 
 @app.post("/detect")
-async def predict(rawData: RawData, background_tasks: BackgroundTasks):
+async def predict(rawData: RawData):
+    print("收到原始序列:", rawData)
     sample = Sample(rawData.time_series, rawData.point_interval)
     seg_points = sample.calc_seg_points()  # 计算分割点
     print("分割点:", seg_points)
@@ -160,7 +162,7 @@ if __name__ == "__main__":
         "server:app",  # Use the import string of the class
         host=HOST,
         port=PORT,
-        reload=DEBUG,
+        # reload=DEBUG,
         workers=get_workers_num(),
         limit_concurrency=CONCURRENCY_LIMIT,
     )

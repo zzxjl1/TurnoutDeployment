@@ -86,6 +86,7 @@ class Sample:
                 "index": to_idx(t2),
             },
         }
+        print(self.seg_points)
         return self.seg_points
 
     # @pysnooper.snoop(thread_info=True)
@@ -106,8 +107,11 @@ class Sample:
 
             # gather结果
             mlp_result = mlp_future.result()
+            print("mlp_result:", mlp_result)
             gru_fcn_result = gru_fcn_future.result()
+            print("gru_fcn_result:", gru_fcn_result)
             ae_result = ae_future.result()
+            print("ae_result:", ae_result)
 
         final_result = result_fusion.predict(mlp_result, gru_fcn_result, ae_result)
 
