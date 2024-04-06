@@ -12,7 +12,8 @@ from config import (
     HOST,
     PORT,
     DELETE_AFTER_UPLOAD,
-    RENDER_POOL_MAX_TASKS_PER_PROC
+    RENDER_POOL_MAX_TASKS_PER_PROC,
+    MAX_BG_TASKS
 )
 
 
@@ -137,6 +138,12 @@ async def predict(rawData: RawData):
     if FILE_OUTPUT:
         # background_tasks.add_task(plot_and_upload, sample.uuid)
         # threading.Thread(target=plot_and_upload, args=(sample.uuid,)).start()
+        queue_size = backgroundTasksPool._work_queue.qsize()
+        if DEBUG:
+            print(f"当前后台任务线程池任务堆积数：{queue_size}")
+        if queue_size > MAX_BG_TASKS:
+            print(f"当前后台任务线程池发生任务堆积，触发拒绝策略！")
+            raise RuntimeError("后台任务线程池任务堆积！")
         backgroundTasksPool.submit(plot_and_upload, sample.uuid)
 
     return {

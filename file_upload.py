@@ -1,12 +1,13 @@
 import os
 from minio import Minio
-from minio.error import S3Error
-from config import ENDPOINT, ACCESS_KEY, SECRET_KEY, BUCKET_NAME, UPLOAD_MAX_WORKERS
+from config import ENDPOINT, ACCESS_KEY, SECRET_KEY, BUCKET_NAME, UPLOAD_MAX_WORKERS,UPLOAD
 import concurrent.futures
 
 
 class FigureUploader:
     def __init__(self):
+        if not UPLOAD:
+            return
         self.client = Minio(
             ENDPOINT,
             access_key=ACCESS_KEY,

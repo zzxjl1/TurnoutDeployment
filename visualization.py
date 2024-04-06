@@ -9,9 +9,18 @@ import matplotlib.pyplot as plt
 
 
 class AutoEncoderPlotter:
+    fig = None
+
     @classmethod
     def draw(cls, path, channels, y_before, y_after, ae_type, loss, series_to_encode):
-        figure, (axes) = plt.subplots(channels, 1, figsize=(12, 5))
+        if cls.fig is None:
+            print("当前进程中的可复用对象不存在，正在创建新的figure对象！")
+            cls.fig, axes = plt.subplots(channels, 1, figsize=(12, 5))
+        else:
+            print(f"Reusing existing figure ID: {cls.fig.number}")
+            cls.fig.clear()  # Clear existing content
+            axes = cls.fig.subplots(channels, 1)
+
         for i in range(channels):
             ax = axes[i]
             ax.plot(y_before[i], label="original")
@@ -21,12 +30,11 @@ class AutoEncoderPlotter:
             ax.set_ylim(bottom=0, top=5)
 
         title = f"AutoEncoder type: {ae_type} - loss: {loss}"
-        figure.suptitle(title)
-        lines, labels = figure.axes[-1].get_legend_handles_labels()
-        figure.legend(lines, labels, loc="upper right")
-        figure.set_tight_layout(True)
-        plt.savefig(f"{path}/{ae_type}", dpi=150)
-        plt.close(figure)
+        cls.fig.suptitle(title)
+        lines, labels = cls.fig.axes[-1].get_legend_handles_labels()
+        cls.fig.legend(lines, labels, loc="upper right")
+        cls.fig.set_tight_layout(True)
+        cls.fig.savefig(f"{path}/{ae_type}", dpi=150)
 
     @classmethod
     def plot(cls, uuid, processPool):
@@ -46,6 +54,8 @@ class AutoEncoderPlotter:
 
 
 class SegmentationPlotter:
+    fig = None
+
     @classmethod
     def draw(
         cls,
@@ -60,8 +70,15 @@ class SegmentationPlotter:
         segmentation_point_2_x,
         name,
     ):
-        fig = plt.figure(figsize=(9, 4))
-        ax = fig.subplots()
+        if cls.fig is None:
+            print("当前进程中的可复用对象不存在，正在创建新的figure对象！")
+            cls.fig = plt.figure(figsize=(9, 4))
+        else:
+            print(f"Reusing existing figure ID: {cls.fig.number}")
+            cls.fig.clear()  # Clear existing content
+
+        ax = cls.fig.subplots()
+        ax.cla()
         ax.set_xlim(0, duration)
         ax.set_yticks([])  # 不显示y轴
         ax_new = ax.twinx().twiny()
@@ -80,27 +97,26 @@ class SegmentationPlotter:
         ax2.set_yticks([])  # 不显示y轴
         # 画竖线
         if segmentation_point_1_x is not None:
-            plt.axvline(
+            ax2.axvline(
                 x=segmentation_point_1_x,
                 color="r",
                 linestyle="--",
                 label="Segmentation Point",
             )
         if segmentation_point_2_x is not None:
-            plt.axvline(x=segmentation_point_2_x, color="r", linestyle="--")
-        plt.title(f"Channel {name} Segmentation Result")
+            ax2.axvline(x=segmentation_point_2_x, color="r", linestyle="--")
+        cls.fig.suptitle(f"Channel {name} Segmentation Result")
         lines, labels = ax1.get_legend_handles_labels()
         lines2, labels2 = ax2.get_legend_handles_labels()
         heatmap_patch = patches.Rectangle((0, 0), 1, 1, fc="r", alpha=0.7)
-        plt.legend(
+        ax2.legend(
             lines + [heatmap_patch] + lines2,
             labels + ["GRU Score Heatmap"] + labels2,
             loc="upper right",
         )  # 显示图例
         ax.set_xlabel("Time(s)")
-        plt.tight_layout()
-        plt.savefig(f"{path}/{name}", dpi=150)
-        plt.close(fig)
+        cls.fig.tight_layout()
+        cls.fig.savefig(f"{path}/{name}", dpi=150)
 
     @classmethod
     def plot(cls, uuid, processPool):
@@ -120,22 +136,31 @@ class SegmentationPlotter:
 
 
 class SamplePlotter:
+    fig = None
+
     @classmethod
     def draw(cls, path, data):
-        fig = plt.figure(figsize=(9, 2))
-        ax1 = fig.subplots()
+        if cls.fig is None:
+            print("当前进程中的可复用对象不存在，正在创建新的figure对象！")
+            cls.fig = plt.figure(figsize=(9, 4))
+        else:
+            print(f"Reusing existing figure ID: {cls.fig.number}")
+            cls.fig.clear()  # Clear existing content
+
+        ax1 = cls.fig.subplots()
+        ax1.cla()
         for phase in ["A", "B", "C"]:
             ax1.plot(*data[phase], label=f"Phase {phase}")
-        plt.title(f"Sample after Interpolation")
+        cls.fig.suptitle(f"Sample after Interpolation")
         ax1.set_xlabel("Time(s)")
         ax1.set_ylabel("Current(A)")
         ax1.set_ylim(bottom=0, top=5)
-        plt.xlim(0, None)  # 设置x轴范围
-        plt.grid(True)
+        ax1.set_xlim(0, None)  # 设置x轴范围
+        ax1.grid(True)
         lines, labels = ax1.get_legend_handles_labels()
-        plt.legend(lines, labels, loc="best")
-        plt.savefig(f"{path}/input_sample.png", dpi=150)
-        plt.close(fig)
+        ax1.legend(lines, labels, loc="best")
+        cls.fig.tight_layout()
+        cls.fig.savefig(f"{path}/input_sample.png", dpi=150)
 
     @classmethod
     def plot(cls, uuid, processPool):
