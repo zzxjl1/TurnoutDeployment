@@ -201,9 +201,9 @@ def send_loop():
     global total_response_time
     global total_requests
     while 1:
-        ran_val = random.randint(1, 10)
+        ran_val = random.randint(1, 5)
         print(f"Sleep for {ran_val} seconds!")
-        time.sleep(ran_val)
+        time.sleep(ran_val*2)
         samples, types = get_all_samples()
         samples_to_send = random.sample(list(zip(samples, types)), ran_val)
         for sample, type in samples_to_send:

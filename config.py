@@ -26,13 +26,13 @@ DEBUG = True  # 是否开启调试模式
 FORCE_CPU = True  # 强制使用CPU跑模型
 N_WORKERS = 0  # web server worker数量（-1为自动检测）
 RENDER_POOL_SIZE = 3  # 渲染进程池大小（per worker）
-RENDER_POOL_MAX_TASKS_PER_PROC = 50 # 渲染进程最大复用次数（避免渲染过程中的内存泄漏）
+RENDER_POOL_MAX_TASKS_PER_PROC = 1000 # 渲染进程最大复用次数（避免渲染过程中的内存泄漏）
 RENDER_POOL_MAX_QUQUE_SIZE = 50  # 渲染进程池最大任务堆积数
 MAX_BG_TASKS = 100  # 最大后台任务数
 CONCURRENCY_LIMIT = None  # 服务最大并发数（None为不限制）,超过直接返回503
 
 """ 文件对象存储配置 """
-UPLOAD = True  # 是否上传文件
+UPLOAD = False  # 是否上传文件
 BUCKET_NAME = "turnout-diagnosis"  # 存储桶名称
 ENDPOINT = "127.0.0.1:9000"
 ACCESS_KEY = "U3UlH092S0ntcVjPAKsC"

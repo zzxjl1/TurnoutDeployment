@@ -3,15 +3,25 @@ import pickle
 import matplotlib
 from matplotlib import patches
 from config import RENDER_POOL_MAX_QUQUE_SIZE, DEBUG
-
 matplotlib.use("Agg")  # Use the Agg backend
 import matplotlib.pyplot as plt
+import traceback, functools, sys, os
 
+def trace_unhandled_exceptions(func):
+    @functools.wraps(func)
+    def wrapped_func(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except:
+            print ("Exception in RENDER PROCESS:")
+            traceback.print_exc()
+    return wrapped_func
 
 class AutoEncoderPlotter:
     fig = None
 
     @classmethod
+    @trace_unhandled_exceptions
     def draw(cls, path, channels, y_before, y_after, ae_type, loss, series_to_encode):
         if cls.fig is None:
             print("当前进程中的可复用对象不存在，正在创建新的figure对象！")
@@ -57,6 +67,7 @@ class SegmentationPlotter:
     fig = None
 
     @classmethod
+    @trace_unhandled_exceptions
     def draw(
         cls,
         path,
@@ -139,6 +150,7 @@ class SamplePlotter:
     fig = None
 
     @classmethod
+    @trace_unhandled_exceptions
     def draw(cls, path, data):
         if cls.fig is None:
             print("当前进程中的可复用对象不存在，正在创建新的figure对象！")
