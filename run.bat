@@ -12,7 +12,7 @@ if %errorLevel% == 0 (
 )
 
 :: 判断RailwayTurnoutGuard是否在运行
-tasklist /FI "WINDOWTITLE eq RailwayTurnoutGuard" 2>NUL | find /I /N "python.exe">NUL
+tasklist /FI "WINDOWTITLE eq RailwayTurnoutGuard" 2>NUL
 if "%ERRORLEVEL%"=="0" (
     echo RailwayTurnoutGuard 正在运行，2 秒后强制中止进程...
     timeout /t 2 >nul
@@ -24,6 +24,6 @@ echo 2 秒后启动 RailwayTurnoutGuard ...
 timeout /t 2 >nul
 echo Starting server.py...
 cd /d %~dp0
-start "RailwayTurnoutGuard" python "C:\Users\吴凡\Desktop\TurnoutDeployment\server.py"
+start "RailwayTurnoutGuard" python server.py
 
 timeout /t 5 >nul
