@@ -1,27 +1,29 @@
+chcp 65001
 @echo off
-:: ¼ì²â¹ÜÀíÔ±È¨ÏÞ
+:: æ£€æµ‹ç®¡ç†å‘˜æƒé™
 NET SESSION >nul 2>&1
 if %errorLevel% == 0 (
-    echo ¹ÜÀíÔ±È¨ÏÞ - YES
+    echo ç®¡ç†å‘˜æƒé™ - YES
 ) else (
-    echo ¹ÜÀíÔ±È¨ÏÞ - NO
-    echo ÇëÓÃ¹ÜÀíÔ±È¨ÏÞÖ´ÐÐ£¡
+    echo ç®¡ç†å‘˜æƒé™ - NO
+    echo è¯·ç”¨ç®¡ç†å‘˜æƒé™æ‰§è¡Œï¼
     pause
     exit /b
 )
 
-:: ÅÐ¶ÏRailwayTurnoutGuardÊÇ·ñÔÚÔËÐÐ
+:: åˆ¤æ–­RailwayTurnoutGuardæ˜¯å¦åœ¨è¿è¡Œ
 tasklist /FI "WINDOWTITLE eq RailwayTurnoutGuard" 2>NUL | find /I /N "python.exe">NUL
 if "%ERRORLEVEL%"=="0" (
-    echo RailwayTurnoutGuard ÕýÔÚÔËÐÐ£¬2 ÃëºóÇ¿ÖÆÖÐÖ¹½ø³Ì...
+    echo RailwayTurnoutGuard æ­£åœ¨è¿è¡Œï¼Œ2 ç§’åŽå¼ºåˆ¶ä¸­æ­¢è¿›ç¨‹...
     timeout /t 2 >nul
     taskkill /F /FI "WINDOWTITLE eq RailwayTurnoutGuard" >nul 2>&1
     echo RailwayTurnoutGuard killed.
 )
 
-echo 2 ÃëºóÆô¶¯ RailwayTurnoutGuard ...
+echo 2 ç§’åŽå¯åŠ¨ RailwayTurnoutGuard ...
 timeout /t 2 >nul
 echo Starting server.py...
-start "RailwayTurnoutGuard" python server.py
+cd /d %~dp0
+start "RailwayTurnoutGuard" python "C:\Users\å´å‡¡\Desktop\TurnoutDeployment\server.py"
 
 timeout /t 5 >nul
