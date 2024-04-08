@@ -1,4 +1,5 @@
 import multiprocessing
+import os
 from concurrent.futures import ThreadPoolExecutor
 from config import (
     DEBUG,
@@ -15,6 +16,11 @@ from config import (
     RENDER_POOL_MAX_TASKS_PER_PROC,
     MAX_BG_TASKS
 )
+
+# 获取当前脚本所在的目录
+script_dir = os.path.dirname(os.path.abspath(__file__))
+# 切换工作目录到当前脚本所在目录
+os.chdir(script_dir)
 
 
 def is_main_process():
@@ -39,7 +45,7 @@ if DEBUG:
     print("Using device:", DEVICE)
 
 
-from fastapi import FastAPI, BackgroundTasks
+from fastapi import FastAPI
 from pydantic import BaseModel
 import visualization
 from typing import Dict, Any, Union
@@ -160,16 +166,29 @@ async def callback(uuid: str):
     print(f"收到{uuid}的成功回调！")
     return
 
+@app.get("/force_restart")
+async def force_restart():
+    print("收到来自remote的强制重启服务请求！")
+    os.system("run.bat")
+    return 
+
 
 if __name__ == "__main__":
     import uvicorn
-    from utils import get_workers_num
+    import time
+    from utils import get_workers_num, get_console_title
+
+    print("Current working directory:", script_dir)
+    if get_console_title() != "RailwayTurnoutGuard":
+        print("错误的启动方式，请双击 run.bat 运行!")
+        time.sleep(5)
+        raise RuntimeError("错误的启动方式")
 
     uvicorn.run(
         "server:app",  # Use the import string of the class
         host=HOST,
         port=PORT,
-        #reload=DEBUG,
+        # reload=DEBUG,
         workers=get_workers_num(),
         limit_concurrency=CONCURRENCY_LIMIT,
     )

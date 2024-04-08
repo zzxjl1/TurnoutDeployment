@@ -148,3 +148,15 @@ def load_model(FILE_PATH,DEVICE):
     model = torch.load(FILE_PATH, map_location=DEVICE)  # 加载模型
     print(f"模型{FILE_PATH}加载成功!")
     return model
+
+import ctypes
+
+def set_console_title(new_title):
+    ctypes.windll.kernel32.SetConsoleTitleW(new_title)
+
+def get_console_title():
+    BUF_SIZE = 256
+    buffer = ctypes.create_unicode_buffer(BUF_SIZE)
+    ctypes.windll.kernel32.GetConsoleTitleW(buffer, BUF_SIZE)
+    print("Window title: ",buffer.value)
+    return buffer.value
