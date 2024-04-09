@@ -149,7 +149,20 @@ def load_model(FILE_PATH,DEVICE):
     print(f"模型{FILE_PATH}加载成功!")
     return model
 
-import ctypes
+import ctypes, sys
+
+def is_admin():
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except:
+        return True
+
+def run_as_admin():
+    if is_admin():
+        print("正在用管理员权限运行！")
+    else:
+        print("尝试用管理员权限运行...")
+        ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
 
 def set_console_title(new_title):
     ctypes.windll.kernel32.SetConsoleTitleW(new_title)

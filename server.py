@@ -175,14 +175,10 @@ async def force_restart():
 
 if __name__ == "__main__":
     import uvicorn
-    import time
-    from utils import get_workers_num, get_console_title
-
+    from utils import get_workers_num, set_console_title, run_as_admin
+    run_as_admin()
     print("Current working directory:", script_dir)
-    if get_console_title() != "RailwayTurnoutGuard":
-        print("错误的启动方式，请双击 run.bat 运行!")
-        time.sleep(5)
-        raise RuntimeError("错误的启动方式")
+    set_console_title("RailwayTurnoutGuard")
 
     uvicorn.run(
         "server:app",  # Use the import string of the class
