@@ -1,6 +1,6 @@
 import logging
 from logging.handlers import RotatingFileHandler
-from config import LOG_BACKUP_COUNT, LOG_FILE_PATH, LOG_MAX_SIZE, LOG_LEVEL
+from config import LOG_BACKUP_COUNT, LOG_FILE_PATH, LOG_MAX_SIZE, LOG_LEVEL, ENABLE_CONSOLE_LOG, ENABLE_FILE_LOG
 
 log_levels = {
     'CRITICAL': logging.CRITICAL,
@@ -26,5 +26,7 @@ formatter = logging.Formatter(
 
 ch.setFormatter(formatter)
 fh.setFormatter(formatter)
-logger.addHandler(ch) #将日志输出至屏幕
-logger.addHandler(fh) #将日志输出至文件
+if ENABLE_CONSOLE_LOG:
+    logger.addHandler(ch) #将日志输出至控制台
+if ENABLE_FILE_LOG:
+    logger.addHandler(fh) #将日志输出至文件

@@ -47,3 +47,5 @@ LOG_LEVEL = "DEBUG"  # 日志级别
 LOG_FILE_PATH = "./server.log"  # 日志文件路径
 LOG_MAX_SIZE = 10  # 文件分片大小（MB）
 LOG_BACKUP_COUNT = 3  # 文件滚动备份数量
+ENABLE_CONSOLE_LOG = True  # 是否输出到控制台
+ENABLE_FILE_LOG = True  # 是否输出到文件
