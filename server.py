@@ -176,16 +176,14 @@ async def force_restart():
     self_terminate()
 
 def deamon():
-    import psutil
     from config import MAX_MEM_USAGE_IN_GB
+    from utils import get_total_memory_usage
     print("Deamon thread started!")
     while True:
         time.sleep(10)
-        pid = os.getpid()
-        p = psutil.Process(pid)
-        info = p.memory_full_info()
-        print("当前内存占用：",info)
-        if info.uss > MAX_MEM_USAGE_IN_GB*1024*1024*1024:
+        usage = get_total_memory_usage()
+        print("当前内存占用：", round(usage/1024/1024/1024,2),"GB")
+        if usage > MAX_MEM_USAGE_IN_GB*1024*1024*1024:
             print("内存占用超限，服务正在重启！")
             time.sleep(2)
             os.system("run.bat")

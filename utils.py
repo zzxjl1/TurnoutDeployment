@@ -179,7 +179,7 @@ def get_pids():
     try:
         with open(PID_FILE, 'r') as f:
             pids = [pid.strip() for pid in f.readlines()]
-        return pids
+        return map(int, pids)
     except FileNotFoundError:
         print("未找到PID文件")
         return []
@@ -190,7 +190,29 @@ def self_terminate():
     print("记录中的pid：",pids)
     for pid in pids:
         try:
-            psutil.Process(int(pid)).kill()
+            psutil.Process(pid).kill()
             print(f"进程{pid}已结束")
         except psutil.NoSuchProcess:
             print(f"进程{pid}不存在")
+
+def get_total_memory_usage():
+    res = 0
+    pids = set()
+    for pid in get_pids():
+        try:
+            pids.add(pid)
+            p = psutil.Process(pid)
+            for child in p.children(recursive=True):
+                pids.add(child.pid)
+        except psutil.NoSuchProcess:
+            pass
+    
+    print("当前进程树：",pids)
+    for pid in pids:
+        try:
+            p = psutil.Process(pid)
+            res += p.memory_info().rss
+        except psutil.NoSuchProcess:
+            pass
+    return res
+    
