@@ -30,6 +30,7 @@ RENDER_POOL_MAX_TASKS_PER_PROC = None  # 渲染进程最大复用次数（None�
 RENDER_POOL_MAX_QUQUE_SIZE = 50  # 渲染进程池最大任务堆积数
 MAX_BG_TASKS = 100  # 最大后台任务数
 CONCURRENCY_LIMIT = None  # 服务最大并发数（None为不限制）,超过直接返回503
+MAX_MEM_USAGE_IN_GB = 5 # 最大内存占用，超过将重启服务
 
 """ 文件对象存储配置 """
 UPLOAD = False  # 是否上传文件
