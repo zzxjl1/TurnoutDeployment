@@ -24,13 +24,13 @@ DEBUG = False  # 是否开启调试模式
 
 """ 性能参数配置 """
 FORCE_CPU = True  # 强制使用CPU跑模型
-N_WORKERS = 0  # web server worker数量（-1为自动检测）
+N_WORKERS = -1  # web server worker数量（-1为自动检测）
 RENDER_POOL_SIZE = 3  # 渲染进程池大小（per worker）
 RENDER_POOL_MAX_TASKS_PER_PROC = None  # 渲染进程最大复用次数（None为无限次）
 RENDER_POOL_MAX_QUQUE_SIZE = 50  # 渲染进程池最大任务堆积数
 MAX_BG_TASKS = 100  # 最大后台任务数
 CONCURRENCY_LIMIT = None  # 服务最大并发数（None为不限制）,超过直接返回503
-MAX_MEM_USAGE_IN_GB = 5 # 最大内存占用，超过将重启服务
+MAX_MEM_USAGE_IN_GB = 1.0 # 最大内存占用（per worker），超过将重启服务
 
 """ 文件对象存储配置 """
 UPLOAD = False  # 是否上传文件

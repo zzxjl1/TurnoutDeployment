@@ -149,7 +149,7 @@ def load_model(FILE_PATH,DEVICE):
     print(f"模型{FILE_PATH}加载成功!")
     return model
 
-import ctypes
+import ctypes, psutil
 
 def set_console_title(new_title):
     ctypes.windll.kernel32.SetConsoleTitleW(new_title)
@@ -160,3 +160,37 @@ def get_console_title():
     ctypes.windll.kernel32.GetConsoleTitleW(buffer, BUF_SIZE)
     print("Window title: ",buffer.value)
     return buffer.value
+
+PID_FILE = './pids.txt'
+def flush_pid():
+    try:
+        os.remove(PID_FILE)  # 删除旧的PID文件
+        print("旧的PID记录文件已删除")
+    except FileNotFoundError:
+        pass
+    
+def record_pid():
+    pid = os.getpid()  # 获取当前进程的PID
+    with open(PID_FILE, 'a') as f:
+        f.write(str(pid) + '\n')  # 将PID写入文件
+    print(f"pid {pid} recorded!")
+
+def get_pids():
+    try:
+        with open(PID_FILE, 'r') as f:
+            pids = [pid.strip() for pid in f.readlines()]
+        return pids
+    except FileNotFoundError:
+        print("未找到PID文件")
+        return []
+
+def self_terminate():
+    pids = get_pids()
+    flush_pid()
+    print("记录中的pid：",pids)
+    for pid in pids:
+        try:
+            psutil.Process(int(pid)).kill()
+            print(f"进程{pid}已结束")
+        except psutil.NoSuchProcess:
+            print(f"进程{pid}不存在")

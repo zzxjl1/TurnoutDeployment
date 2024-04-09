@@ -57,7 +57,7 @@ if not is_render_process():
     from auto_encoder import BP_AE
     from mlp import MLP
     from result_fusion import FuzzyLayer, FusedFuzzyDeepNet
-    from utils import mk_output_dir
+    from utils import mk_output_dir, record_pid, self_terminate
     from file_upload import FigureUploader
     import requests
     import shutil
@@ -75,6 +75,7 @@ async def index():
 
 @app.on_event("startup")
 def startup_event():
+    record_pid()
     mk_output_dir()
     global renderProcessPool
     renderProcessPool = multiprocessing.get_context("spawn").Pool(
@@ -96,6 +97,7 @@ def shutdown_event():
     print("渲染进程池已关闭！")
     backgroundTasksPool.shutdown()
     print("后台任务线程池已关闭！")
+    self_terminate()
 
 
 def send_callback(uuid: str):
@@ -170,7 +172,8 @@ async def callback(uuid: str):
 async def force_restart():
     print("收到来自remote的强制重启服务请求！")
     os.system("run.bat")
-    return 
+    # subprocess.Popen('run.bat', creationflags=subprocess.CREATE_NEW_CONSOLE)
+    self_terminate()
 
 def deamon():
     import psutil
@@ -181,11 +184,13 @@ def deamon():
         pid = os.getpid()
         p = psutil.Process(pid)
         info = p.memory_full_info()
-        print("当前pid内存占用：",info)
+        print("当前内存占用：",info)
         if info.uss > MAX_MEM_USAGE_IN_GB*1024*1024*1024:
             print("内存占用超限，服务正在重启！")
             time.sleep(2)
             os.system("run.bat")
+            # subprocess.Popen('run.bat', creationflags=subprocess.CREATE_NEW_CONSOLE)
+            self_terminate()
             break
         
 
@@ -193,8 +198,14 @@ if __name__ == "__main__":
     import uvicorn
     import time
     import threading
-    from utils import get_workers_num, get_console_title
+    from utils import get_workers_num
+    from utils import get_console_title
+    from utils import flush_pid
     
+    print("正在清理上一次运行残留的PID记录...")
+    self_terminate()
+    flush_pid()
+    record_pid()
     threading.Thread(target=deamon).start()
 
     print("Current working directory:", script_dir)
