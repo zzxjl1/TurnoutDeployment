@@ -8,3 +8,4 @@ scipy
 torch
 uvicorn
 minio
+psutil

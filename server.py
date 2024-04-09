@@ -172,17 +172,28 @@ async def force_restart():
     os.system("run.bat")
     return 
 
+def deamon():
+    import psutil
+    print("Deamon thread started!")
+    while True:
+        time.sleep(10)
+        pid = os.getpid()
+        p = psutil.Process(pid)
+        info = p.memory_full_info()
+        print(info)
+        # TODO: 超过阈值触发服务自动重启
 
 if __name__ == "__main__":
     import uvicorn
     import time
+    import threading
     from utils import get_workers_num, get_console_title
+    
+    threading.Thread(target=deamon).start()
 
     print("Current working directory:", script_dir)
     if get_console_title() != "RailwayTurnoutGuard":
-        print("错误的启动方式，请双击 run.bat 运行!")
-        time.sleep(5)
-        raise RuntimeError("错误的启动方式")
+        raise RuntimeError("错误的启动方式，请双击 run.bat 运行!")
 
     uvicorn.run(
         "server:app",  # Use the import string of the class
