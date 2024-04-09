@@ -2,7 +2,7 @@ import os
 from minio import Minio
 from config import ENDPOINT, ACCESS_KEY, SECRET_KEY, BUCKET_NAME, UPLOAD_MAX_WORKERS,UPLOAD
 import concurrent.futures
-
+from logger_config import logger
 
 class FigureUploader:
     def __init__(self):
@@ -25,6 +25,7 @@ class FigureUploader:
 
     def upload(self, file_path):
         obj_name = file_path.replace("./file_output/", "")
+        logger.debug(f"开始上传{obj_name}...")
         self.client.fput_object(BUCKET_NAME, obj_name.replace("\\", "/"), file_path)
 
     def get_file_list(self, uuid):
@@ -40,6 +41,7 @@ class FigureUploader:
 
     def upload_all(self, uuid):
         file_list = self.get_file_list(uuid)
+        logger.debug(f"{uuid}待上传文件列表：{file_list}")
         tasks = [self.executor.submit(self.upload, file) for file in file_list]
         # 等待所有任务完成
         concurrent.futures.wait(tasks)

@@ -5,14 +5,11 @@ import auto_encoder
 import result_fusion
 import numpy as np
 from utils import interpolate, mk_output_dir, save_args
-
-
+from logger_config import logger
 from config import FILE_OUTPUT, TARGET_SAMPLE_RATE
 from utils import parse_predict_result
 import concurrent.futures
 import uuid
-
-# import pysnooper
 
 
 class Sample:
@@ -86,7 +83,7 @@ class Sample:
                 "index": to_idx(t2),
             },
         }
-        print(self.seg_points)
+        logger.debug(self.seg_points)
         return self.seg_points
 
     # @pysnooper.snoop(thread_info=True)
@@ -107,11 +104,11 @@ class Sample:
 
             # gather结果
             mlp_result = mlp_future.result()
-            print("mlp_result:", mlp_result)
+            logger.debug(f"mlp_result:{mlp_result}")
             gru_fcn_result = gru_fcn_future.result()
-            print("gru_fcn_result:", gru_fcn_result)
+            logger.debug(f"gru_fcn_result:{gru_fcn_result}")
             ae_result = ae_future.result()
-            print("ae_result:", ae_result)
+            logger.debug(f"ae_result:{ae_result}")
 
         final_result = result_fusion.predict(mlp_result, gru_fcn_result, ae_result)
 

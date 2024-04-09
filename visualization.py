@@ -2,10 +2,11 @@ import os
 import pickle
 import matplotlib
 from matplotlib import patches
-from config import RENDER_POOL_MAX_QUQUE_SIZE, DEBUG
+from config import RENDER_POOL_MAX_QUQUE_SIZE
 matplotlib.use("Agg")  # Use the Agg backend
 import matplotlib.pyplot as plt
 import traceback, functools, sys, os
+from logger_config import logger
 
 def trace_unhandled_exceptions(func):
     @functools.wraps(func)
@@ -13,8 +14,8 @@ def trace_unhandled_exceptions(func):
         try:
             func(*args, **kwargs)
         except:
-            print ("Exception in RENDER PROCESS:")
-            traceback.print_exc()
+            logger.exception("Exception in RENDER PROCESS:")
+
     return wrapped_func
 
 class AutoEncoderPlotter:
@@ -24,10 +25,10 @@ class AutoEncoderPlotter:
     @trace_unhandled_exceptions
     def draw(cls, path, channels, y_before, y_after, ae_type, loss, series_to_encode):
         if cls.fig is None:
-            print("当前进程中的可复用对象不存在，正在创建新的figure对象！")
+            logger.debug("当前进程中的可复用对象不存在，正在创建新的figure对象！")
             cls.fig, axes = plt.subplots(channels, 1, figsize=(12, 5))
         else:
-            print(f"Reusing existing figure ID: {cls.fig.number}")
+            logger.debug(f"Reusing existing figure ID: {cls.fig.number}")
             cls.fig.clear()  # Clear existing content
             axes = cls.fig.subplots(channels, 1)
 
@@ -57,7 +58,7 @@ class AutoEncoderPlotter:
                     kwargs = pickle.load(f)
                     # draw(path, **kwargs)
                     task = processPool.apply_async(
-                        cls.draw, args=(path,), kwds=kwargs, error_callback=print
+                        cls.draw, args=(path,), kwds=kwargs, error_callback=logger.exception
                     )
                     tasks.append(task)
         return tasks
@@ -82,10 +83,10 @@ class SegmentationPlotter:
         name,
     ):
         if cls.fig is None:
-            print("当前进程中的可复用对象不存在，正在创建新的figure对象！")
+            logger.debug("当前进程中的可复用对象不存在，正在创建新的figure对象！")
             cls.fig = plt.figure(figsize=(9, 4))
         else:
-            print(f"Reusing existing figure ID: {cls.fig.number}")
+            logger.debug(f"Reusing existing figure ID: {cls.fig.number}")
             cls.fig.clear()  # Clear existing content
 
         ax = cls.fig.subplots()
@@ -140,7 +141,7 @@ class SegmentationPlotter:
                     kwargs = pickle.load(f)
                     # draw(path, **kwargs)
                     task = processPool.apply_async(
-                        cls.draw, args=(path,), kwds=kwargs, error_callback=print
+                        cls.draw, args=(path,), kwds=kwargs, error_callback=logger.exception
                     )
                     tasks.append(task)
         return tasks
@@ -153,10 +154,10 @@ class SamplePlotter:
     @trace_unhandled_exceptions
     def draw(cls, path, data):
         if cls.fig is None:
-            print("当前进程中的可复用对象不存在，正在创建新的figure对象！")
+            logger.debug("当前进程中的可复用对象不存在，正在创建新的figure对象！")
             cls.fig = plt.figure(figsize=(9, 4))
         else:
-            print(f"Reusing existing figure ID: {cls.fig.number}")
+            logger.debug(f"Reusing existing figure ID: {cls.fig.number}")
             cls.fig.clear()  # Clear existing content
 
         ax1 = cls.fig.subplots()
@@ -180,17 +181,15 @@ class SamplePlotter:
         with open(f"{path}/input_sample.pkl", "rb") as f:
             data = pickle.load(f)
             # draw(path, data)
-            task = processPool.apply_async(cls.draw, (path, data), error_callback=print)
+            task = processPool.apply_async(cls.draw, (path, data), error_callback=logger.exception)
             return task
 
 
 def plot_all(uuid, processPool):
     queue_size = processPool._taskqueue.qsize()
-    if DEBUG:
-        import multiprocessing
-        print(f"{multiprocessing.current_process().name}渲染进程池任务堆积数：{queue_size}")
+    logger.debug(f"渲染进程池任务堆积数：{queue_size}")
     if queue_size > RENDER_POOL_MAX_QUQUE_SIZE:
-        print(f"当前渲染进程池发生任务堆积，触发拒绝策略！")
+        logger.error(f"当前渲染进程池发生任务堆积，触发拒绝策略！")
         raise RuntimeError("渲染进程池任务堆积！")
 
     ae_tasks = AutoEncoderPlotter.plot(uuid, processPool)

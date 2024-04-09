@@ -1,10 +1,9 @@
 import multiprocessing
 import os
 from concurrent.futures import ThreadPoolExecutor
+from logger_config import logger
 from config import (
-    DEBUG,
     FILE_OUTPUT,
-    FORCE_CPU,
     RENDER_POOL_SIZE,
     CALLBACK_URL,
     TASK_FINISH_CALLBACK,
@@ -31,21 +30,15 @@ def is_render_process():
     return "PoolWorker" in multiprocessing.current_process().name
 
 
-if DEBUG:
-    import torch
-
-    print("---DEBUG MODE---")
-    print("当前进程:", multiprocessing.current_process())
-    print("是否渲染进程:", is_render_process())
-    print("是否Web服务器进程:", not is_render_process())
-    print("是否主进程:", is_main_process())
-    DEVICE = torch.device(
-        "cuda" if torch.cuda.is_available() and not FORCE_CPU else "cpu"
-    )
-    print("Using device:", DEVICE)
+logger.debug(f"--- DEBUG INFO ---")
+logger.debug(f"当前进程: {multiprocessing.current_process()}")
+logger.debug(f"是否渲染进程: {is_render_process()}")
+logger.debug(f"是否Web服务器进程: {not is_render_process()}")
+logger.debug(f"是否主进程: {is_main_process()}")
 
 
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import visualization
 from typing import Dict, Any, Union
@@ -84,9 +77,9 @@ def startup_event():
     )
     global backgroundTasksPool
     backgroundTasksPool = ThreadPoolExecutor(max_workers=RENDER_POOL_SIZE)
-    print(f"当前web服务器进程: {multiprocessing.current_process().name}")
-    print(f"对应渲染进程池为: {renderProcessPool}")
-    print(f"后台任务线程池为: {backgroundTasksPool}")
+    logger.info(f"当前web服务器进程: {multiprocessing.current_process().name}")
+    logger.info(f"对应渲染进程池为: {renderProcessPool}")
+    logger.info(f"后台任务线程池为: {backgroundTasksPool}")
 
 
 @app.on_event("shutdown")
@@ -94,10 +87,16 @@ def shutdown_event():
     renderProcessPool.terminate()
     renderProcessPool.close()
     renderProcessPool.join()
-    print("渲染进程池已关闭！")
+    logger.info("渲染进程池已关闭！")
     backgroundTasksPool.shutdown()
-    print("后台任务线程池已关闭！")
+    logger.info("后台任务线程池已关闭！")
     self_terminate()
+
+# 注册全局异常处理器
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    logger.exception("An unhandled exception occurred: %s", exc)
+    return JSONResponse(status_code=500, content={"message": str(exc)})
 
 
 def send_callback(uuid: str):
@@ -110,21 +109,21 @@ def del_after_upload(uuid: str):
     if not DELETE_AFTER_UPLOAD:
         return
     shutil.rmtree(f"./file_output/{uuid}")
-    print(f"{uuid}的本地文件已删除！")
+    logger.info(f"{uuid}的本地文件已删除！")
 
 
 def plot_and_upload(uuid: str):
-    print(f"开始生成{uuid}的可视化文件...")
+    logger.info(f"开始生成{uuid}的可视化文件...")
     visualization.plot_all(uuid, renderProcessPool)
-    print(f"{uuid}生成已全部完成！")
+    logger.info(f"{uuid}生成已全部完成！")
     # del_after_upload(uuid) # DEBUG ONLY
 
     if not UPLOAD:
         return
 
-    print(f"开始上传{uuid}...")
+    logger.info(f"开始上传{uuid}...")
     minioUploader.upload_all(uuid)
-    print(f"上传完成：{uuid}")
+    logger.info(f"上传完成：{uuid}")
     send_callback(uuid)
     del_after_upload(uuid)
 
@@ -136,21 +135,20 @@ class RawData(BaseModel):
 
 @app.post("/detect")
 async def predict(rawData: RawData):
-    print("收到原始序列:", rawData)
+    logger.debug(f"收到原始序列: {rawData}")
     sample = Sample(rawData.time_series, rawData.point_interval)
     seg_points = sample.calc_seg_points()  # 计算分割点
-    print("分割点:", seg_points)
+    logger.debug(f"分割点: {seg_points}")
     prediction = sample.predict()
-    print("预测结果:", prediction)
+    logger.debug(f"预测结果: {prediction}")
 
     if FILE_OUTPUT:
         # background_tasks.add_task(plot_and_upload, sample.uuid)
         # threading.Thread(target=plot_and_upload, args=(sample.uuid,)).start()
         queue_size = backgroundTasksPool._work_queue.qsize()
-        if DEBUG:
-            print(f"当前后台任务线程池任务堆积数：{queue_size}")
+        logger.debug(f"当前后台任务线程池任务堆积数：{queue_size}")
         if queue_size > MAX_BG_TASKS:
-            print(f"当前后台任务线程池发生任务堆积，触发拒绝策略！")
+            logger.error(f"当前后台任务线程池发生任务堆积，触发拒绝策略！")
             raise RuntimeError("后台任务线程池任务堆积！")
         backgroundTasksPool.submit(plot_and_upload, sample.uuid)
 
@@ -165,12 +163,12 @@ async def predict(rawData: RawData):
 
 @app.get("/callback")
 async def callback(uuid: str):
-    print(f"收到{uuid}的成功回调！")
+    logger.info(f"收到{uuid}的成功回调！")
     return
 
 @app.get("/force_restart")
 async def force_restart():
-    print("收到来自remote的强制重启服务请求！")
+    logger.warning("收到来自remote的强制重启服务请求！")
     os.system("run.bat")
     # subprocess.Popen('run.bat', creationflags=subprocess.CREATE_NEW_CONSOLE)
     self_terminate()
@@ -178,13 +176,13 @@ async def force_restart():
 def deamon():
     from config import MAX_MEM_USAGE_IN_GB
     from utils import get_total_memory_usage
-    print("Deamon thread started!")
+    logger.info("Deamon thread started!")
     while True:
         time.sleep(10)
         usage = get_total_memory_usage()
-        print("当前内存占用：", round(usage/1024/1024/1024,2),"GB")
+        logger.info(f"当前内存占用：{round(usage/1024/1024/1024,2)}GB")
         if usage > MAX_MEM_USAGE_IN_GB*1024*1024*1024:
-            print("内存占用超限，服务正在重启！")
+            logger.error("内存占用超限，服务正在重启！")
             time.sleep(2)
             os.system("run.bat")
             # subprocess.Popen('run.bat', creationflags=subprocess.CREATE_NEW_CONSOLE)
@@ -200,13 +198,13 @@ if __name__ == "__main__":
     from utils import get_console_title
     from utils import flush_pid
     
-    print("正在清理上一次运行残留的PID记录...")
+    logger.info("正在清理上一次运行残留的PID记录...")
     self_terminate()
     flush_pid()
     record_pid()
     threading.Thread(target=deamon).start()
 
-    print("Current working directory:", script_dir)
+    logger.info(f"Current working directory: {script_dir}")
     if get_console_title() != "RailwayTurnoutGuard":
         raise RuntimeError("错误的启动方式，请双击 run.bat 运行!")
 
@@ -214,7 +212,6 @@ if __name__ == "__main__":
         "server:app",  # Use the import string of the class
         host=HOST,
         port=PORT,
-        # reload=DEBUG,
         workers=get_workers_num(),
         limit_concurrency=CONCURRENCY_LIMIT,
     )

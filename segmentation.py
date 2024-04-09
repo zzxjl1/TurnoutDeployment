@@ -8,6 +8,7 @@ from utils import save_args
 from scipy.signal import savgol_filter, find_peaks
 import numpy as np
 from config import FILE_OUTPUT
+from logger_config import logger
 
 SEGMENT_POINT_1_THRESHOLD = 30
 
@@ -37,16 +38,16 @@ def find_segmentation_point_1(x, y, threshold=SEGMENT_POINT_1_THRESHOLD):
     """寻找第一个分段点（between stage 1 and stage 2）"""
     peak_idx, _ = find_peaks(y, height=threshold)
     if threshold == 0:  # 递归中止条件，山高度阈值为0还找不到分段点，说明分段点不存在
-        # print("segmentation point 1 not found")
+        logger.debug("segmentation point 1 not found")
         return None, None
     if len(peak_idx) < 2:  # 找到的点不够，说明阈值太高，降低阈值再找
         threshold -= 1  # 降低“自适应阈值”
-        # print("applying adaptive threshhold: ", threshold)
+        logger.debug(f"applying adaptive threshhold: {threshold}")
         return find_segmentation_point_1(x, y, threshold)
-    # print("peak_point_available: ", np.array(x)[peak_idx])
+    logger.debug(f"peak_point_available: {np.array(x)[peak_idx]}")
     index = peak_idx[1]  # 点的索引
     result = x[index]  # 点的x值（时间）
-    # print("segmentation point 1: ", result)
+    logger.debug(f"segmentation point 1: {result}")
     return index, result
 
 
@@ -62,9 +63,9 @@ def find_segmentation_point_2(
     prominences = properties["prominences"]  # 峰值的详细参数
     assert len(peak_idx) == len(prominences)  # 峰值的个数和峰值的详细参数个数相同
     if len(peak_idx) == 0 or len(prominences) == 0:  # 没有找到峰值，说明分段点不存在
-        # print("segmentation point 2 not found")
+        logger.debug("segmentation point 2 not found")
         return None, None
-    # print("peak_point_available: ", np.array(x)[peak_idx])
+    logger.debug(f"peak_point_available: {np.array(x)[peak_idx]}")
     scores = []  # 用于存储每个峰值的分数
     for i in range(len(prominences)):
         index = peak_idx[i]
@@ -77,11 +78,11 @@ def find_segmentation_point_2(
             * (abs(y[index] - stage2_avg) / abs(y[index] - stage3_avg))
         )
         scores.append(score)
-        # print(time_in_sec, prominences[i], score)
+        # logger.debug(f"{time_in_sec} {prominences[i]} {score}")
     index = np.argmax(scores)  # 找到得分最高，返回第几个峰的索引
     index = peak_idx[index]  # 点的索引
     result = x[index]  # 峰值的x值（时间）
-    # print("segmentation point 2: ", result)
+    logger.debug(f"segmentation point 2: {result}")
     return index, result
 
 
@@ -119,10 +120,10 @@ def calc_segmentation_points_single_series(uuid, series, gru_score, name=""):
 def calc_segmentation_points(uuid, sample):
     """计算整个样本（4条线）的分段点"""
     model_input = model_input_parse(sample)
-    # print("model_input: ", model_input.shape)
+    logger.debug(f"model_input: {model_input.shape}")
     gru_score = gru_predict_score(model_input)
-    # print("gru_score: ", gru_score)
-    # print(gru_score.shape)
+    logger.debug(f"gru_score: {gru_score}")
+    logger.debug(gru_score.shape)
 
     result = {}
     for name, series in sample.items():  # 遍历每条曲线
@@ -131,7 +132,7 @@ def calc_segmentation_points(uuid, sample):
         result[name] = calc_segmentation_points_single_series(
             uuid, series, gru_score=gru_score, name=name
         )  # 计算分段点
-    # print(result)
+    logger.debug(result)
     # 做了一个融合，不同曲线算出的分段点可能不同，因此需要取最佳的分段点
     pt1, pt2 = [i[0] for i in result.values()], [i[1] for i in result.values()]
     # 去除None
@@ -145,16 +146,16 @@ def calc_segmentation_points(uuid, sample):
             return pt
         pt = np.array(pt).reshape(-1, 1)
         result = LOF(n_neighbors=1).fit_predict(pt)
-        # print(result)
+        logger.debug(result)
         return [pt[i] for i in range(len(pt)) if result[i] == 1]
 
     pt1 = remove_outlier(pt1)
     pt2 = remove_outlier(pt2)
-    # print(pt1, pt2)
+    logger.debug(f"{pt1},{pt2}")
     # 求平均值
     final_result = np.mean(pt1) if pt1 else None, np.mean(pt2) if pt2 else None
     # 特殊情况：如果第二个分段点小于等于第一个分段点，丢弃
     if final_result[0] and final_result[1] and final_result[1] <= final_result[0]:
         final_result = final_result[0], None
-    # print("segmentation final result: ", final_result)
+    logger.debug(f"segmentation final result: {final_result}")
     return final_result

@@ -20,13 +20,12 @@ TARGET_SAMPLE_RATE = 25  # 模型输入采样率
 HOST = "0.0.0.0"  # web server监听地址
 PORT = 5000  # 端口
 FILE_OUTPUT = True  # 是否输出文件
-DEBUG = False  # 是否开启调试模式
 
 """ 性能参数配置 """
 FORCE_CPU = True  # 强制使用CPU跑模型
 N_WORKERS = -1  # web server worker数量（-1为自动检测）
 RENDER_POOL_SIZE = 3  # 渲染进程池大小（per worker）
-RENDER_POOL_MAX_TASKS_PER_PROC = None  # 渲染进程最大复用次数（None为无限次）
+RENDER_POOL_MAX_TASKS_PER_PROC = 100  # 渲染进程最大复用次数（None为无限次）
 RENDER_POOL_MAX_QUQUE_SIZE = 50  # 渲染进程池最大任务堆积数
 MAX_BG_TASKS = 100  # 最大后台任务数
 CONCURRENCY_LIMIT = None  # 服务最大并发数（None为不限制）,超过直接返回503
@@ -42,3 +41,9 @@ UPLOAD_MAX_WORKERS = 5  # 文件上传最大线程数（per uploader）
 TASK_FINISH_CALLBACK = True  # 是否在上传完成后回调
 DELETE_AFTER_UPLOAD = True  # 是否在上传完成后删除本地文件
 CALLBACK_URL = "http://localhost:5000/callback"  # 完成后的回调地址（GET请求，参数为?uuid=xxxxx）
+
+""" 日志配置 """
+LOG_LEVEL = "DEBUG"  # 日志级别
+LOG_FILE_PATH = "./server.log"  # 日志文件路径
+LOG_MAX_SIZE = 10  # 文件分片大小（MB）
+LOG_BACKUP_COUNT = 3  # 文件滚动备份数量

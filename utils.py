@@ -6,6 +6,7 @@ from config import SUPPORTED_SAMPLE_TYPES
 from config import N_WORKERS
 import scipy.interpolate
 from scipy import signal
+from logger_config import logger
 
 
 def find_nearest(array, value):
@@ -87,7 +88,7 @@ def parse_sample(
             seg_index = [find_nearest(x, seg) for seg in segmentations]
         else:
             seg_index = None
-        # print(seg_index)
+        # logger.info(seg_index)
 
     result = np.array(time_series)
     return result, seg_index
@@ -137,16 +138,16 @@ def get_workers_num():
     import multiprocessing
 
     number_of_cores = multiprocessing.cpu_count()
-    print("CPU 核心数量: ", number_of_cores)
+    logger.info(f"CPU 核心数量: {number_of_cores}")
     workers_num = (number_of_cores-1) // 8 if N_WORKERS == -1 else N_WORKERS
     assert workers_num >= 0, "worker数量非法！"
-    print("web server worker数量设置为: ", workers_num)
+    logger.info(f"web server worker数量设置为: {workers_num}")
     return workers_num
 
 def load_model(FILE_PATH,DEVICE):
     assert os.path.exists(FILE_PATH), f"{FILE_PATH} not found, please train first!"
     model = torch.load(FILE_PATH, map_location=DEVICE)  # 加载模型
-    print(f"模型{FILE_PATH}加载成功!")
+    logger.info(f"模型{FILE_PATH}加载成功!")
     return model
 
 import ctypes, psutil
@@ -158,14 +159,14 @@ def get_console_title():
     BUF_SIZE = 256
     buffer = ctypes.create_unicode_buffer(BUF_SIZE)
     ctypes.windll.kernel32.GetConsoleTitleW(buffer, BUF_SIZE)
-    print("Window title: ",buffer.value)
+    logger.info(f"Window title: {buffer.value}")
     return buffer.value
 
 PID_FILE = './pids.txt'
 def flush_pid():
     try:
         os.remove(PID_FILE)  # 删除旧的PID文件
-        print("旧的PID记录文件已删除")
+        logger.info("旧的PID记录文件已删除")
     except FileNotFoundError:
         pass
     
@@ -173,7 +174,7 @@ def record_pid():
     pid = os.getpid()  # 获取当前进程的PID
     with open(PID_FILE, 'a') as f:
         f.write(str(pid) + '\n')  # 将PID写入文件
-    print(f"pid {pid} recorded!")
+    logger.info(f"pid {pid} recorded!")
 
 def get_pids():
     try:
@@ -181,19 +182,19 @@ def get_pids():
             pids = [pid.strip() for pid in f.readlines()]
         return map(int, pids)
     except FileNotFoundError:
-        print("未找到PID文件")
+        logger.info("未找到PID文件")
         return []
 
 def self_terminate():
     pids = get_pids()
     flush_pid()
-    print("记录中的pid：",pids)
+    logger.info(f"记录中的pid：{list(pids)}")
     for pid in pids:
         try:
             psutil.Process(pid).kill()
-            print(f"进程{pid}已结束")
+            logger.info(f"进程{pid}已结束")
         except psutil.NoSuchProcess:
-            print(f"进程{pid}不存在")
+            logger.info(f"进程{pid}不存在")
 
 def get_total_memory_usage():
     res = 0
@@ -207,7 +208,7 @@ def get_total_memory_usage():
         except psutil.NoSuchProcess:
             pass
     
-    print("当前进程树：",pids)
+    logger.info(f"当前进程树: {list(pids)}")
     for pid in pids:
         try:
             p = psutil.Process(pid)
