@@ -14,7 +14,7 @@ if %errorLevel% == 0 (
 :: 判断RailwayTurnoutGuard是否在运行
 tasklist /FI "WINDOWTITLE eq RailwayTurnoutGuard" 2>NUL
 if "%ERRORLEVEL%"=="0" (
-    echo RailwayTurnoutGuard 正在运行，2 秒后强制中止进程...
+    echo 若 RailwayTurnoutGuard 正在运行，2 秒后将强制中止进程...
     timeout /t 2 >nul
     taskkill /F /FI "WINDOWTITLE eq RailwayTurnoutGuard" >nul 2>&1
     echo RailwayTurnoutGuard killed.
