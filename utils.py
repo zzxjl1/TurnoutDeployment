@@ -185,20 +185,28 @@ def get_pids():
         logger.info("未找到PID文件")
         return []
 
+def recersive_terminate(pid):
+    try:
+        process = psutil.Process(pid)
+        logger.info(f"尝试结束进程{pid}")
+        #for child in process.children(recursive=True):
+        #    recersive_terminate(child.pid)
+        while process.status() != psutil.STATUS_DEAD:
+            process.kill()
+        logger.info(f"进程{pid}已结束")
+    except psutil.NoSuchProcess:
+        logger.info(f"进程{pid}不存在")
+    except Exception as e:
+        logger.error(f"结束进程{pid}失败: {e}")
+
+
 def self_terminate(flush_record=True):
     pids = get_pids()
     if flush_record:
         flush_pid()
     logger.info(f"记录中的pid：{pids}")
     for pid in pids:
-        try:
-            logger.info(f"尝试结束进程{pid}")
-            psutil.Process(pid).kill()
-            logger.info(f"进程{pid}已结束")
-        except psutil.NoSuchProcess:
-            logger.info(f"进程{pid}不存在")
-        except Exception as e:
-            logger.error(f"结束进程{pid}失败: {e}")
+        recersive_terminate(pid)
 
 def get_total_memory_usage():
     res = 0
