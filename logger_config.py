@@ -9,7 +9,8 @@ from config import (
     ENABLE_CONSOLE_LOG,
     ENABLE_FILE_LOG,
     LOG_ROTATION_POLICY,
-    LOG_ROTATION_MAX_TIME_INTERVAL
+    LOG_ROTATION_MAX_TIME_INTERVAL,
+    LOG_ROTATION_MAX_TIME_UNIT
 )
 
 log_levels = {
@@ -36,7 +37,7 @@ fh_size = RotatingFileHandler(
 )
 fh_time = TimedRotatingFileHandler(
     filename=LOG_FILE_PATH,
-    when="D",
+    when=LOG_ROTATION_MAX_TIME_UNIT,
     interval=LOG_ROTATION_MAX_TIME_INTERVAL,
     backupCount=LOG_BACKUP_COUNT
 )

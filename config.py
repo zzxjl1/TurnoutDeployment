@@ -45,8 +45,9 @@ CALLBACK_URL = "http://localhost:5000/callback"  # 完成后的回调地址（GE
 """ 日志配置 """
 LOG_LEVEL = "DEBUG"  # 日志级别
 LOG_FILE_PATH = "./server.log"  # 日志文件路径
-LOG_ROTATION_POLICY = "SIZE" # 分片策略（“TIME” or “SIZE”）
-LOG_ROTATION_MAX_TIME_INTERVAL = 1 # 分片时钟周期（day）,仅当分片策略为TIME时生效
+LOG_ROTATION_POLICY = "TIME" # 分片策略（“TIME” or “SIZE”）
+LOG_ROTATION_MAX_TIME_INTERVAL = 1 # 分片时钟周期,仅当分片策略为TIME时生效
+LOG_ROTATION_MAX_TIME_UNIT = "M" # 分片时钟单位（S：Seconds、M：Minutes、H：Hours、D：Days）
 LOG_ROTATION_MAX_SIZE = 50  # 文件分片大小（MB）,仅当分片策略为SIZE时生效
 LOG_BACKUP_COUNT = 3  # 文件滚动备份数量
 ENABLE_CONSOLE_LOG = True  # 是否输出到控制台
