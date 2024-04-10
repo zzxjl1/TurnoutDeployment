@@ -171,7 +171,7 @@ async def force_restart():
     logger.warning("收到来自remote的强制重启服务请求！")
     os.system("run.bat")
     # subprocess.Popen('run.bat', creationflags=subprocess.CREATE_NEW_CONSOLE)
-    self_terminate()
+    self_terminate(flush_record=False)
 
 def deamon():
     from config import MAX_MEM_USAGE_IN_GB
@@ -186,7 +186,7 @@ def deamon():
             time.sleep(2)
             os.system("run.bat")
             # subprocess.Popen('run.bat', creationflags=subprocess.CREATE_NEW_CONSOLE)
-            self_terminate()
+            self_terminate(flush_record=False)
             break
         
 

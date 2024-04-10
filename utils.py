@@ -185,9 +185,10 @@ def get_pids():
         logger.info("未找到PID文件")
         return []
 
-def self_terminate():
+def self_terminate(flush_record=True):
     pids = get_pids()
-    flush_pid()
+    if flush_record:
+        flush_pid()
     logger.info(f"记录中的pid：{pids}")
     for pid in pids:
         try:
