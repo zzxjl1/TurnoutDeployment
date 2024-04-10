@@ -1,4 +1,5 @@
 import logging
+import multiprocessing
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 from config import (
     LOG_BACKUP_COUNT,
@@ -22,7 +23,7 @@ log_levels = {
 
 assert LOG_LEVEL in log_levels, f"Invalid log level: {LOG_LEVEL}"
 
-logger = logging.getLogger()
+logger = multiprocessing.get_logger()
 logger.setLevel(log_levels[LOG_LEVEL])
 ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
