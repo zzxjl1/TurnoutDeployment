@@ -195,9 +195,13 @@ if __name__ == "__main__":
     import uvicorn
     import time
     import threading
+    from logger_config import LogRecordSocketReceiver
     from utils import get_workers_num
     from utils import get_console_title
     from utils import flush_pid
+
+    receiver = LogRecordSocketReceiver()
+    threading.Thread(target=receiver.serve_until_stopped).start()
     
     logger.info("正在清理上一次运行残留的PID记录...")
     self_terminate()
