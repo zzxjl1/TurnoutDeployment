@@ -179,8 +179,12 @@ def deamon():
     from utils import get_total_memory_usage
     logger.info("Deamon thread started!")
     while True:
-        time.sleep(10)
-        usage = get_total_memory_usage()
+        time.sleep(5)
+        try:
+            usage = get_total_memory_usage()
+        except Exception as e:
+            logger.exception(f"获取内存占用失败: {e}")
+            continue
         logger.info(f"当前内存占用：{round(usage/1024/1024/1024,2)}GB")
         if usage > MAX_MEM_USAGE_IN_GB*1024*1024*1024:
             logger.error("内存占用超限，服务正在重启！")

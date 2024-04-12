@@ -5,7 +5,7 @@ from matplotlib import patches
 from config import RENDER_POOL_MAX_QUQUE_SIZE
 matplotlib.use("Agg")  # Use the Agg backend
 import matplotlib.pyplot as plt
-import traceback, functools, sys, os
+import functools, os
 from logger_config import logger
 
 def trace_unhandled_exceptions(func):
@@ -13,8 +13,14 @@ def trace_unhandled_exceptions(func):
     def wrapped_func(*args, **kwargs):
         try:
             func(*args, **kwargs)
-        except:
-            logger.exception("Exception in RENDER PROCESS:")
+        except Exception as e:
+            logger.exception(f"Exception in RENDER PROCESS:{e}")
+            if isinstance(e, MemoryError):
+                logger.error("Memory Error detected, restarting service...")
+                import subprocess
+                from utils import self_terminate
+                #subprocess.Popen('run.bat', creationflags=subprocess.CREATE_NEW_CONSOLE)
+                #self_terminate(flush_record=False)
 
     return wrapped_func
 
