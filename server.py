@@ -1,5 +1,6 @@
 import multiprocessing
 import os
+import time
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from logger_config import logger
@@ -93,6 +94,7 @@ def shutdown_event():
     logger.info("后台任务线程池已关闭！")
     self_terminate()
 
+
 # 注册全局异常处理器
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
@@ -170,13 +172,19 @@ async def callback(uuid: str):
 @app.get("/force_restart")
 async def force_restart():
     logger.warning("收到来自remote的强制重启服务请求！")
+    time.sleep(0.5)  # 等待释放出一些内存
     # os.system("run.bat")
-    subprocess.Popen('run.bat', creationflags=subprocess.CREATE_NEW_CONSOLE)
+    subprocess.Popen(
+        "run.bat",
+        creationflags=subprocess.CREATE_NEW_CONSOLE,
+    )
     self_terminate(flush_record=False)
 
+
 def deamon():
-    from config import MAX_MEM_USAGE_IN_GB
+    from config import MAX_MEM_USAGE_IN_GB, RESTART_ON_OOM
     from utils import get_total_memory_usage
+
     logger.info("Deamon thread started!")
     while True:
         time.sleep(5)
@@ -186,14 +194,17 @@ def deamon():
             logger.exception(f"获取内存占用失败: {e}")
             continue
         logger.info(f"当前内存占用：{round(usage/1024/1024/1024,2)}GB")
-        if usage > MAX_MEM_USAGE_IN_GB*1024*1024*1024:
+        if RESTART_ON_OOM and usage > MAX_MEM_USAGE_IN_GB * 1024 * 1024 * 1024:
             logger.error("内存占用超限，服务正在重启！")
             time.sleep(2)
             # os.system("run.bat")
-            subprocess.Popen('run.bat', creationflags=subprocess.CREATE_NEW_CONSOLE)
+            subprocess.Popen(
+                "run.bat",
+                creationflags=subprocess.CREATE_NEW_CONSOLE
+            )       
             self_terminate(flush_record=False)
             break
-        
+
 
 if __name__ == "__main__":
     import uvicorn
@@ -206,7 +217,7 @@ if __name__ == "__main__":
 
     receiver = LogRecordSocketReceiver()
     threading.Thread(target=receiver.serve_until_stopped).start()
-    
+
     logger.info("正在清理上一次运行残留的PID记录...")
     self_terminate()
     flush_pid()

@@ -1,34 +1,28 @@
 import os
 import pickle
+import psutil
 import matplotlib
 from matplotlib import patches
-from config import RENDER_POOL_MAX_QUQUE_SIZE
+from config import RENDER_POOL_MAX_QUQUE_SIZE, RESTART_ON_OOM
 matplotlib.use("Agg")  # Use the Agg backend
 import matplotlib.pyplot as plt
-import functools, os
 from logger_config import logger
 
-def trace_unhandled_exceptions(func):
-    @functools.wraps(func)
-    def wrapped_func(*args, **kwargs):
+def handle_oom():
+    if RESTART_ON_OOM:
+        logger.error("Memory Error detected, restarting service...")
+        import requests
+        from config import PORT
         try:
-            func(*args, **kwargs)
-        except Exception as e:
-            logger.exception(f"Exception in RENDER PROCESS:{e}")
-            if isinstance(e, MemoryError):
-                logger.error("Memory Error detected, restarting service...")
-                import subprocess
-                from utils import self_terminate
-                #subprocess.Popen('run.bat', creationflags=subprocess.CREATE_NEW_CONSOLE)
-                #self_terminate(flush_record=False)
+            requests.get(f"http://localhost:{PORT}/force_restart",timeout=1e-5)
+        except requests.Timeout as e:
+            pass
 
-    return wrapped_func
 
 class AutoEncoderPlotter:
     fig = None
 
     @classmethod
-    @trace_unhandled_exceptions
     def draw(cls, path, channels, y_before, y_after, ae_type, loss, series_to_encode):
         if cls.fig is None:
             logger.debug("当前进程中的可复用对象不存在，正在创建新的figure对象！")
@@ -51,7 +45,13 @@ class AutoEncoderPlotter:
         lines, labels = cls.fig.axes[-1].get_legend_handles_labels()
         cls.fig.legend(lines, labels, loc="upper right")
         cls.fig.set_tight_layout(True)
-        cls.fig.savefig(f"{path}/{ae_type}", dpi=150)
+        try:
+            cls.fig.savefig(f"{path}/{ae_type}", dpi=150)
+        except MemoryError:
+            pid = os.getpid()
+            handle_oom()
+            logger.exception(f"Memory Error detected, killing process {pid} ...")
+            psutil.Process(pid).kill()
 
     @classmethod
     def plot(cls, uuid, processPool):
@@ -74,7 +74,6 @@ class SegmentationPlotter:
     fig = None
 
     @classmethod
-    @trace_unhandled_exceptions
     def draw(
         cls,
         path,
@@ -134,7 +133,13 @@ class SegmentationPlotter:
         )  # 显示图例
         ax.set_xlabel("Time(s)")
         cls.fig.tight_layout()
-        cls.fig.savefig(f"{path}/{name}", dpi=150)
+        try:
+            cls.fig.savefig(f"{path}/{name}", dpi=150)
+        except MemoryError:
+            pid = os.getpid()
+            handle_oom()
+            logger.exception(f"Memory Error detected, killing process {pid} ...")
+            psutil.Process(pid).kill()
 
     @classmethod
     def plot(cls, uuid, processPool):
@@ -157,7 +162,6 @@ class SamplePlotter:
     fig = None
 
     @classmethod
-    @trace_unhandled_exceptions
     def draw(cls, path, data):
         if cls.fig is None:
             logger.debug("当前进程中的可复用对象不存在，正在创建新的figure对象！")
@@ -179,7 +183,14 @@ class SamplePlotter:
         lines, labels = ax1.get_legend_handles_labels()
         ax1.legend(lines, labels, loc="best")
         cls.fig.tight_layout()
-        cls.fig.savefig(f"{path}/input_sample.png", dpi=150)
+        try:
+            cls.fig.savefig(f"{path}/input_sample.png", dpi=150)
+        except MemoryError:
+            pid = os.getpid()
+            handle_oom()
+            logger.exception(f"Memory Error detected, killing process {pid} ...")
+            psutil.Process(pid).kill()
+
 
     @classmethod
     def plot(cls, uuid, processPool):
@@ -205,3 +216,15 @@ def plot_all(uuid, processPool):
     tasks = ae_tasks + [input_sample] + seg_pt_tasks
     for task in tasks:
         task.wait()
+
+if __name__ == "__main__":
+    import multiprocessing
+    renderProcessPool = multiprocessing.get_context("spawn").Pool(
+        processes=3
+    )
+    count = 0
+    while 1:
+        plot_all("a3e41f2c-019d-4f46-a393-c15f73779263",renderProcessPool)
+        count+=1
+        print(count)
+   
