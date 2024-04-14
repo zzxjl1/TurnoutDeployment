@@ -20,6 +20,7 @@ TARGET_SAMPLE_RATE = 25  # 模型输入采样率
 HOST = "0.0.0.0"  # web server监听地址
 PORT = 5000  # 端口
 FILE_OUTPUT = True  # 是否输出文件
+RESTORE_UNFINISHED_TASKS = True # 启动时恢复执行未完成的任务
 
 """ 性能参数配置 """
 FORCE_CPU = True  # 强制使用CPU跑模型

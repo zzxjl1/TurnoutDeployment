@@ -15,7 +15,8 @@ from config import (
     PORT,
     DELETE_AFTER_UPLOAD,
     RENDER_POOL_MAX_TASKS_PER_PROC,
-    MAX_BG_TASKS
+    MAX_BG_TASKS,
+    RESTORE_UNFINISHED_TASKS
 )
 
 # 获取当前脚本所在的目录
@@ -82,6 +83,7 @@ def startup_event():
     logger.info(f"当前web服务器进程: {multiprocessing.current_process().name}")
     logger.info(f"对应渲染进程池为: {renderProcessPool}")
     logger.info(f"后台任务线程池为: {backgroundTasksPool}")
+    restore_unfinished_tasks()
 
 
 @app.on_event("shutdown")
@@ -205,6 +207,14 @@ def deamon():
             self_terminate(flush_record=False)
             break
 
+def restore_unfinished_tasks():
+    if not FILE_OUTPUT or not RESTORE_UNFINISHED_TASKS:
+        return
+    for item in os.scandir("./file_output"):
+        if item.is_dir():
+            uuid = item.name
+            logger.info(f"检测到未完成的任务：{uuid}")
+            backgroundTasksPool.submit(plot_and_upload, uuid)
 
 if __name__ == "__main__":
     import uvicorn
